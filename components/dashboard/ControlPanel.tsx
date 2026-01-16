@@ -4,7 +4,19 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Play, Pause, Volume2, VolumeX, Download, RotateCcw, Activity, Filter } from "lucide-react";
+import {
+  Activity,
+  ChevronDown,
+  Download,
+  FileJson,
+  FileSpreadsheet,
+  Filter,
+  Pause,
+  Play,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +27,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -108,7 +128,7 @@ export function ControlPanel() {
   };
 
   return (
-    <Card className="h-full border-border bg-card shadow-lg" role="region" aria-label="Control Panel">
+    <Card className="h-fit border-border bg-card shadow-lg" role="region" aria-label="Control Panel">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold">Controls</CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
@@ -190,11 +210,6 @@ export function ControlPanel() {
               )}
             </Button>
           </div>
-          {totalEvents > 0 && (
-            <p className="text-xs text-gray-400 mt-2">
-              {isLive ? "⚡ Active" : "⏸ Paused"} • {totalEvents} events
-            </p>
-          )}
         </section>
 
         {/* Reset Confirmation Dialog */}
@@ -222,13 +237,26 @@ export function ControlPanel() {
 
         {/* Active Filters Section */}
         <section aria-labelledby="filters-heading">
-          <h3
+          <div className="flex items-center justify-between">
+            <h3
             id="filters-heading"
             className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2"
           >
             <Filter className="w-4 h-4" />
             <span>Active Filters{hasActiveFilters && ` (${activeFilterCount})`}</span>
           </h3>
+          {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                className=" text-gray-400 hover:text-white focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={clearAllFilters}
+                aria-label="Clear all active filters"
+              >
+                Clear All Filters
+              </Button>
+            )}
+          </div>
 
           <div className="space-y-3">
             <div className="space-y-2">
@@ -332,17 +360,7 @@ export function ControlPanel() {
               </div>
             </div>
 
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-gray-400 hover:text-white focus-visible:ring-2 focus-visible:ring-ring mt-3"
-                onClick={clearAllFilters}
-                aria-label="Clear all active filters"
-              >
-                Clear All Filters
-              </Button>
-            )}
+            
           </div>
         </section>
 
@@ -350,75 +368,66 @@ export function ControlPanel() {
 
         {/* Export Logs Section */}
         <section aria-labelledby="export-heading">
-          <h3
-            id="export-heading"
-            className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export Logs</span>
-          </h3>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-xs text-gray-400 mb-2">
-                Current View ({filteredLogs.length} events)
-              </p>
-              <div className="flex gap-2" role="group" aria-label="Export current view">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 text-xs focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={handleExportFilteredJson}
-                  disabled={filteredLogs.length === 0}
-                  aria-label={`Export ${filteredLogs.length} filtered threats as JSON`}
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  JSON
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 text-xs focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={handleExportFilteredCsv}
-                  disabled={filteredLogs.length === 0}
-                  aria-label={`Export ${filteredLogs.length} filtered threats as CSV`}
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  CSV
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs text-gray-400 mb-2">
-                Full Dataset ({logs.length} events)
-              </p>
-              <div className="flex gap-2" role="group" aria-label="Export full dataset">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 text-xs focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={handleExportFullJson}
-                  disabled={logs.length === 0}
-                  aria-label={`Export ${logs.length} total threats as JSON`}
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  JSON
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 text-xs focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={handleExportFullCsv}
-                  disabled={logs.length === 0}
-                  aria-label={`Export ${logs.length} total threats as CSV`}
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  CSV
-                </Button>
-              </div>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-between focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Export logs"
+              >
+                <span className="flex items-center gap-2" id="export-heading">
+                  <Download className="h-4 w-4" />
+                  Export Logs
+                </span>
+                <ChevronDown className="h-4 w-4 opacity-70" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-72">
+              <DropdownMenuLabel>Filtered View</DropdownMenuLabel>
+              <DropdownMenuItem
+                disabled={filteredLogs.length === 0}
+                onSelect={handleExportFilteredJson}
+                aria-label={`Export ${filteredLogs.length} filtered threats as JSON`}
+              >
+                <FileJson className="h-4 w-4" />
+                Download as JSON
+                <span className="ml-auto text-xs text-gray-400">
+                  {filteredLogs.length}
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={filteredLogs.length === 0}
+                onSelect={handleExportFilteredCsv}
+                aria-label={`Export ${filteredLogs.length} filtered threats as CSV`}
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Download as CSV
+                <span className="ml-auto text-xs text-gray-400">
+                  {filteredLogs.length}
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Full Dataset</DropdownMenuLabel>
+              <DropdownMenuItem
+                disabled={logs.length === 0}
+                onSelect={handleExportFullJson}
+                aria-label={`Export ${logs.length} total threats as JSON`}
+              >
+                <FileJson className="h-4 w-4" />
+                Download as JSON
+                <span className="ml-auto text-xs text-gray-400">{logs.length}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={logs.length === 0}
+                onSelect={handleExportFullCsv}
+                aria-label={`Export ${logs.length} total threats as CSV`}
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Download as CSV
+                <span className="ml-auto text-xs text-gray-400">{logs.length}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </section>
       </CardContent>
     </Card>

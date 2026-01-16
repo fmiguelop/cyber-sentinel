@@ -6,6 +6,7 @@ import { CyberMap } from "@/components/map/CyberMap";
 import { StatHUD } from "@/components/dashboard/StatHUD";
 import { ControlPanel } from "@/components/dashboard/ControlPanel";
 import { EventLog } from "@/components/dashboard/EventLog";
+import { Logo } from "@/components/branding/logo";
 
 export default function Home() {
   // Initialize simulation hook at page level
@@ -22,13 +23,10 @@ export default function Home() {
           <CyberMap />
         </div>
 
-        {/* Stats HUD - Top right (rows 1-4, cols 10-12) */}
-        <div className="col-span-3 row-span-4 space-y-4">
+        {/* Right Sidebar - Full height vertical stack (cols 10-12, rows 1-12) */}
+        <div className="col-span-3 row-span-12 flex flex-col gap-4">
+          <Logo />
           <StatHUD />
-        </div>
-
-        {/* Control Panel - Bottom right, takes remaining vertical space (rows 5-12, cols 10-12) */}
-        <div className="col-span-3 row-span-8">
           <ControlPanel />
         </div>
 

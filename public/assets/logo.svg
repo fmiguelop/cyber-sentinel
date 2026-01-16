@@ -1,0 +1,17 @@
+<svg width="240" height="50" viewBox="0 0 240 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M15 14 L10 14 L10 34 L15 34" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  <path d="M35 14 L40 14 L40 34 L35 34" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  
+  <circle cx="25" cy="24" r="5" stroke="#10B981" stroke-width="2"/>
+  <circle cx="25" cy="24" r="2" fill="#10B981">
+    <animate attributeName="opacity" values="1;0.2;1" dur="1.5s" repeatCount="indefinite" />
+  </circle>
+
+  <text x="55" y="32" font-family="JetBrains Mono, monospace" font-size="24" font-weight="bold" letter-spacing="-1" fill="white">
+    CYBER<tspan fill="#10B981">SENTINEL</tspan>
+  </text>
+  
+  <rect x="228" y="14" width="10" height="20" fill="#10B981">
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite" />
+  </rect>
+</svg>
