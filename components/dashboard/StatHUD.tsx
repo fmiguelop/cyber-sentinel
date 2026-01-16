@@ -21,8 +21,8 @@ export function StatHUD() {
   const statsFiltered = computeThreatStats(filteredLogs);
 
   return (
-    <Card className="border-border bg-card">
-      <CardHeader>
+    <Card className="border-border bg-card shadow-lg" role="region" aria-label="Threat Statistics">
+      <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold">Global Defcon Status</CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
           Real-time threat metrics
@@ -38,7 +38,7 @@ export function StatHUD() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Active Critical</span>
-            <Badge variant="destructive" className="font-mono">{statsGlobal.activeCritical}</Badge>
+            <Badge variant="destructive" className="font-mono glow-critical">{statsGlobal.activeCritical}</Badge>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Top Source</span>
@@ -69,7 +69,7 @@ export function StatHUD() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Active Critical</span>
-            <Badge variant="destructive" className="font-mono">{statsFiltered.activeCritical}</Badge>
+            <Badge variant="destructive" className="font-mono glow-critical">{statsFiltered.activeCritical}</Badge>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Top Source</span>

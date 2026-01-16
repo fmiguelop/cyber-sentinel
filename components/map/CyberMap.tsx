@@ -15,21 +15,38 @@ import { matchesFilters } from "@/lib/threats/filters";
 import type { ThreatEvent } from "@/lib/types/threats";
 
 /**
+ * Check if user prefers reduced motion
+ */
+function useReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/**
  * Pulsing marker dot component colored by severity
  */
 function ThreatMarkerDot({ severity }: { severity: ThreatEvent["severity"] }) {
   const color = severityToColorToken(severity);
+  const prefersReducedMotion = useReducedMotion();
   
   return (
     <div className="relative">
-      {/* Outer pulsing ring */}
-      <div
-        className="absolute inset-0 rounded-full animate-ping opacity-75"
-        style={{ backgroundColor: color }}
-      />
+      {/* Outer pulsing ring - disabled when reduced motion is preferred */}
+      {!prefersReducedMotion && (
+        <div
+          className="absolute inset-0 rounded-full animate-ping opacity-75"
+          style={{ backgroundColor: color }}
+        />
+      )}
       {/* Inner solid dot */}
       <div
-        className="relative h-3 w-3 rounded-full border-2 border-background shadow-lg"
+        className={`relative h-3 w-3 rounded-full border-2 border-background shadow-lg ${
+          severity === "critical"
+            ? "glow-critical"
+            : severity === "medium"
+            ? "glow-medium"
+            : "glow-low"
+        }`}
         style={{ backgroundColor: color }}
       />
     </div>
@@ -48,12 +65,13 @@ export function CyberMap() {
   );
 
   return (
-    <Map
-      theme="dark"
-      projection={{ type: "globe" }}
-      center={[0, 20]}
-      zoom={1.5}
-    >
+    <div role="region" aria-label="Threat Visualization Map" className="h-full w-full">
+      <Map
+        theme="dark"
+        projection={{ type: "globe" }}
+        center={[0, 20]}
+        zoom={1.5}
+      >
       {/* Render attack lines */}
       {mapFeatures && mapFeatures.features.length > 0 && (
         <MapLineLayer data={mapFeatures} width={2} opacity={0.7} />
@@ -122,6 +140,7 @@ export function CyberMap() {
           </MarkerTooltip>
         </MapMarker>,
       ])}
-    </Map>
+      </Map>
+    </div>
   );
 }

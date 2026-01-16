@@ -86,4 +86,36 @@ body {
   .maplibregl-popup-tip {
     @apply hidden!;
   }
+  
+  /* Screen reader only class */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  /* SOC aesthetic: subtle glow for critical elements */
+  .glow-critical {
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+  }
+  
+  .glow-medium {
+    box-shadow: 0 0 6px rgba(234, 179, 8, 0.2);
+  }
+  
+  .glow-low {
+    box-shadow: 0 0 4px rgba(34, 197, 94, 0.2);
+  }
+  
+  /* Improved focus styles for better visibility */
+  *:focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
+  }
 }

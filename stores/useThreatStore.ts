@@ -66,6 +66,7 @@ interface ThreatStore {
   isLive: boolean;
   filters: FilterState;
   mapFeatures: GeoJSON.FeatureCollection<GeoJSON.LineString> | null;
+  soundEnabled: boolean;
 
   // Actions
   addThreat: (threat: ThreatEvent) => void;
@@ -73,6 +74,7 @@ interface ThreatStore {
   setFilters: (filters: Partial<FilterState>) => void;
   pruneExpired: () => void;
   updateMapFeatures: () => void;
+  toggleSound: () => void;
 }
 
 // Debounce timer for map feature updates
@@ -87,6 +89,7 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   isLive: false,
   filters: defaultFilters,
   mapFeatures: null,
+  soundEnabled: true,
 
   // Actions
   addThreat: (threat: ThreatEvent) => {
@@ -172,6 +175,11 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     }, MAP_UPDATE_DEBOUNCE_MS);
   },
 
+  toggleSound: () => {
+    set((state) => ({
+      soundEnabled: !state.soundEnabled,
+    }));
+  },
 }));
 
 // Selectors - exported as separate functions for use in components
