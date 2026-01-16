@@ -22,13 +22,13 @@ export default function Home() {
           <CyberMap />
         </div>
 
-        {/* Stats HUD - Top right (rows 1-5, cols 10-12) */}
-        <div className="col-span-3 row-span-5 space-y-4">
+        {/* Stats HUD - Top right (rows 1-4, cols 10-12) */}
+        <div className="col-span-3 row-span-4 space-y-4">
           <StatHUD />
         </div>
 
-        {/* Control Panel - Bottom right, takes remaining vertical space (rows 6-12, cols 10-12) */}
-        <div className="col-span-3 row-span-7">
+        {/* Control Panel - Bottom right, takes remaining vertical space (rows 5-12, cols 10-12) */}
+        <div className="col-span-3 row-span-8">
           <ControlPanel />
         </div>
 

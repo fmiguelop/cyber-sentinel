@@ -71,7 +71,9 @@ interface ThreatStore {
   // Actions
   addThreat: (threat: ThreatEvent) => void;
   toggleSimulation: () => void;
+  resetSimulation: () => void;
   setFilters: (filters: Partial<FilterState>) => void;
+  clearAllFilters: () => void;
   pruneExpired: () => void;
   updateMapFeatures: () => void;
   toggleSound: () => void;
@@ -123,6 +125,24 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     }));
   },
 
+  resetSimulation: () => {
+    // Clear any pending map update timer
+    if (mapUpdateTimer) {
+      clearTimeout(mapUpdateTimer);
+      mapUpdateTimer = null;
+    }
+    
+    // Reset all state to initial values
+    set({
+      isLive: false,
+      activeThreats: [],
+      logs: [],
+      statsGlobal: defaultStats,
+      filters: defaultFilters,
+      mapFeatures: null,
+    });
+  },
+
   setFilters: (newFilters: Partial<FilterState>) => {
     set((state) => ({
       filters: {
@@ -138,6 +158,12 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
         },
       },
     }));
+    // Trigger map feature update when filters change
+    get().updateMapFeatures();
+  },
+
+  clearAllFilters: () => {
+    set({ filters: defaultFilters });
     // Trigger map feature update when filters change
     get().updateMapFeatures();
   },

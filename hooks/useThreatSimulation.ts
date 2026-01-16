@@ -84,6 +84,8 @@ export function useThreatSimulation() {
   >(null);
 
   // Generate threats when isLive is true
+  // Note: When resetSimulation() sets isLive to false, this effect automatically
+  // cleans up pending timeouts, stopping threat generation immediately.
   useEffect(() => {
     if (!isLive) {
       // Clear any pending generation
