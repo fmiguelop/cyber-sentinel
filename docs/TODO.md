@@ -9,25 +9,25 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
 
 ## Dependencies & Setup (Phase 1 – Scaffold)
 
-- [ ] **Initialize Next.js + TS + Tailwind baseline**  
+- [x] **Initialize Next.js + TS + Tailwind baseline**  
   - Ensure project uses latest Next.js App Router with TypeScript strict mode enabled.  
   - Confirm Tailwind is wired into `app/globals.css` and `postcss.config.mjs` / `tailwind.config` (if present).  
   - **Acceptance criteria**: App boots with a minimal dark background page, no TypeScript or build errors.
 
-- [ ] **Install core dependencies**  
+- [x] **Install core dependencies**  
   - Run:  
     - `npm install mapcn maplibre-gl zustand framer-motion lucide-react date-fns @faker-js/faker`  
   - **Acceptance criteria**: `npm run dev` compiles without missing-module errors.
 
-- [ ] **Setup shadcn/ui base configuration**  
+- [x] **Setup shadcn/ui base configuration**  
   - Initialize shadcn/ui for the project (config, Tailwind plugin, `components` folder structure).  
   - **Acceptance criteria**: A sample shadcn `Button` renders correctly on a test page.
 
-- [ ] **Add shadcn/ui primitives** (depends on: **Setup shadcn/ui base configuration**)  
-  - [ ] Install and generate: `Card`, `Badge`, `ScrollArea`, `Button`, `Separator`, `Tooltip`.  
+- [x] **Add shadcn/ui primitives** (depends on: **Setup shadcn/ui base configuration**)  
+  - [x] Install and generate: `Card`, `Badge`, `ScrollArea`, `Button`, `Separator`, `Tooltip`.  
   - **Acceptance criteria**: All listed components can be imported from the local `components` and render without style or TS issues.
 
-- [ ] **Global dark SOC theme wiring**  
+- [x] **Global dark SOC theme wiring**  
   - Configure base background color `#09090b` (Zinc 950) and text colors in globals/Tailwind.  
   - Set global font stack to JetBrains Mono or Geist Mono and ensure it applies to all text.  
   - **Acceptance criteria**: Default page shows the dark SOC-style background and monospace typography.
@@ -59,7 +59,7 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
 
 ## Zustand Store (Phase 2 – Data Layer)
 
-- [ ] **Create `useThreatStore` with base state** (depends on: **Define shared types for threats**)  
+- [x] **Create `useThreatStore` with base state** (depends on: **Define shared types for threats**)  
   - State:  
     - `activeThreats: ThreatEvent[]` (max 30)  
     - `logs: ThreatEvent[]` (max 100)  
@@ -69,22 +69,22 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
     - `mapFeatures: GeoJSON.FeatureCollection | null`.  
   - **Acceptance criteria**: Store compiles and can be imported without circular dependencies.
 
-- [ ] **Implement `addThreat(threat: ThreatEvent)` action**  
+- [x] **Implement `addThreat(threat: ThreatEvent)` action**  
   - Append threat to `activeThreats` and `logs` while enforcing max sizes (30 and 100).  
   - Update `stats` incrementally for performance.  
   - **Acceptance criteria**: Repeated calls maintain bounded arrays and consistent stats.
 
-- [ ] **Implement `toggleSimulation()` action**  
+- [x] **Implement `toggleSimulation()` action**  
   - Flip `isLive` boolean.  
   - Tie into the simulation hook (start/stop interval).  
   - **Acceptance criteria**: UI-bound controls can pause and resume the generator via this action.
 
-- [ ] **Implement `setFilters(filters: FilterState)` action**  
+- [x] **Implement `setFilters(filters: FilterState)` action**  
   - Update `filters` for severity and attack type (and time range).  
   - Ensure store exposes both raw logs and a derived, filtered view for components.  
   - **Acceptance criteria**: Changing filters updates derived selectors without mutating original data.
 
-- [ ] **Implement debounced `updateMapFeatures()` action** (depends on: **GeoJSON transformation utilities**)  
+- [x] **Implement debounced `updateMapFeatures()` action** (depends on: **GeoJSON transformation utilities**)  
   - Convert current `activeThreats` into `mapFeatures` using the utility function.  
   - Debounce updates to avoid excessive map re-renders under high event volume.  
   - **Acceptance criteria**: Under rapid `addThreat` calls, map updates at a reasonable cadence without noticeable jank.
@@ -93,7 +93,7 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
 
 ## Threat Simulation Hook (Phase 2 – Data Layer)
 
-- [ ] **Create `useThreatSimulation` hook** (depends on: **useThreatStore with base state**, **Utility helpers for random threat properties**)  
+- [x] **Create `useThreatSimulation` hook** (depends on: **useThreatStore with base state**, **Utility helpers for random threat properties**)  
   - Use `setInterval` with randomized delays (500–2000ms) while `isLive` is `true`.  
   - On each tick:  
     - Pick `source` via `getRandomCity()` and `target` via `getRandomTarget(source)`.  
@@ -102,7 +102,7 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
   - Clean up interval on unmount or when `isLive` becomes `false`.  
   - **Acceptance criteria**: When hook is used on the main page, events appear and stop in response to `isLive`.
 
-- [ ] **Implement attack expiration logic**  
+- [x] **Implement attack expiration logic**  
   - Track end time (`timestamp + duration`) and periodically remove expired threats from `activeThreats`.  
   - Ensure removal triggers `updateMapFeatures()` so lines disappear.  
   - **Acceptance criteria**: No more than ~30 active threats remain; old ones automatically drop off after 3–10s.
