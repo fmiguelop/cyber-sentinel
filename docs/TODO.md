@@ -111,22 +111,22 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
 
 ## Map Component (Phase 3 – Components)
 
-- [ ] **Create `CyberMap` wrapper component** (depends on: **mapcn dependency installed**, **GeoJSON transformation utilities**, **useThreatStore with mapFeatures**)  
+- [x] **Create `CyberMap` wrapper component** (depends on: **mapcn dependency installed**, **GeoJSON transformation utilities**, **useThreatStore with mapFeatures**)  
   - Use mapcn `<Map>` with dark style and proper viewport settings.  
   - Wire `mapFeatures` from the store into mapcn `<Source>` + `<Layer>` for LineStrings representing attacks.  
   - **Acceptance criteria**: With mock threats, lines are rendered between source and target coordinates on the globe/map.
 
-- [ ] **Add severity-colored attack lines** (depends on: **CyberMap wrapper component**)  
+- [x] **Add severity-colored attack lines** (depends on: **CyberMap wrapper component**)  
   - Style lines by severity (green = low, yellow = medium, red = critical), using feature properties.  
   - Add opacity-based transitions for attack lifetime (CSS or mapcn-supported animation).  
   - **Acceptance criteria**: Critical vs low severity lines are visually distinct and fade out as attacks expire.
 
-- [ ] **Add source/target markers with pulsing effect**  
+- [x] **Add source/target markers with pulsing effect**  
   - Use mapcn `<Marker>` components for active source/target locations.  
   - Render custom SVG/HTML children with pulsing animation, colored by severity.  
   - **Acceptance criteria**: Each active threat shows clearly visible markers at source and target points.
 
-- [ ] **Attach tooltips with attack details**  
+- [x] **Attach tooltips with attack details**  
   - Use shadcn `<Tooltip>` around markers or line hover regions.  
   - Show type, source/target cities, timestamp, and severity.  
   - **Acceptance criteria**: Hovering a marker reveals concise threat details with correct data.
@@ -135,7 +135,7 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
 
 ## Dashboard UI (Phase 3 – Components)
 
-- [ ] **Design full-screen bento-layout in `app/page.tsx`** (depends on: **Global dark SOC theme wiring**)  
+- [x] **Design full-screen bento-layout in `app/page.tsx`** (depends on: **Global dark SOC theme wiring**)  
   - Use CSS Grid or flex to allocate:  
     - Main map area (~80%)  
     - Top-left stats HUD  
@@ -143,19 +143,19 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
     - Bottom-right live log.  
   - **Acceptance criteria**: Layout matches the described regions and is responsive at typical desktop resolutions.
 
-- [ ] **Implement `StatHUD` component** (depends on: **Zustand stats implementation**)  
+- [x] **Implement `StatHUD` component** (depends on: **Zustand stats implementation**)  
   - Use shadcn `Card`, `Badge`, and `Separator` to show:  
     - Total attacks, active critical count, top source region/country, severity distribution.  
   - Visual styling with neon green/yellow/red accents.  
   - **Acceptance criteria**: Stats update in real time as new events are generated.
 
-- [ ] **Implement `EventLog` component** (depends on: **Zustand logs state**, **Threat Simulation Hook**)  
+- [x] **Implement `EventLog` component** (depends on: **Zustand logs state**, **Threat Simulation Hook**)  
   - Use shadcn `ScrollArea` for a terminal-style log at bottom-right.  
   - Use framer-motion to animate new entries (respecting `prefers-reduced-motion`).  
   - Show timestamp, type, severity, cities, and IP address per row.  
   - **Acceptance criteria**: New events appear at the top/bottom consistently, animation does not overwhelm, and log is limited to 100 entries.
 
-- [ ] **Implement `ControlPanel` component** (depends on: **useThreatStore filters & toggleSimulation**)  
+- [x] **Implement `ControlPanel` component** (depends on: **useThreatStore filters & toggleSimulation**)  
   - Add Play/Pause button using lucide-react icons bound to `toggleSimulation()`.  
   - Add severity and attack type filter checkboxes bound to `setFilters`.  
   - Add time range selector (Last 1min/5min/1hr) that filters the log view (and optionally stats).  

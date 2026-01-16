@@ -73,11 +73,6 @@ interface ThreatStore {
   setFilters: (filters: Partial<FilterState>) => void;
   pruneExpired: () => void;
   updateMapFeatures: () => void;
-
-  // Selectors (computed)
-  selectFilteredLogs: () => ThreatEvent[];
-  selectFilteredThreats: () => ThreatEvent[];
-  selectStatsFiltered: () => ThreatStats;
 }
 
 // Debounce timer for map feature updates
@@ -204,24 +199,22 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     }, MAP_UPDATE_DEBOUNCE_MS);
   },
 
-  // Selectors
-  selectFilteredLogs: () => {
-    const state = get();
-    return state.logs.filter((threat) => matchesFilters(threat, state.filters));
-  },
-
-  selectFilteredThreats: () => {
-    const state = get();
-    return state.activeThreats.filter((threat) =>
-      matchesFilters(threat, state.filters)
-    );
-  },
-
-  selectStatsFiltered: () => {
-    const state = get();
-    const filteredLogs = state.logs.filter((threat) =>
-      matchesFilters(threat, state.filters)
-    );
-    return computeThreatStats(filteredLogs);
-  },
 }));
+
+// Selectors - exported as separate functions for use in components
+export const selectFilteredLogs = (state: ThreatStore) => {
+  return state.logs.filter((threat) => matchesFilters(threat, state.filters));
+};
+
+export const selectFilteredThreats = (state: ThreatStore) => {
+  return state.activeThreats.filter((threat) =>
+    matchesFilters(threat, state.filters)
+  );
+};
+
+export const selectStatsFiltered = (state: ThreatStore) => {
+  const filteredLogs = state.logs.filter((threat) =>
+    matchesFilters(threat, state.filters)
+  );
+  return computeThreatStats(filteredLogs);
+};
