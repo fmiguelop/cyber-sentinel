@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/map";
 import { useThreatStore } from "@/stores/useThreatStore";
 import { severityToColorToken } from "@/lib/threats/random";
+import { matchesFilters } from "@/lib/threats/filters";
 import type { ThreatEvent } from "@/lib/types/threats";
 
 /**
@@ -41,6 +42,10 @@ function ThreatMarkerDot({ severity }: { severity: ThreatEvent["severity"] }) {
 export function CyberMap() {
   const mapFeatures = useThreatStore((state) => state.mapFeatures);
   const activeThreats = useThreatStore((state) => state.activeThreats);
+  const filters = useThreatStore((state) => state.filters);
+  const filteredThreats = activeThreats.filter((threat) =>
+    matchesFilters(threat, filters)
+  );
 
   return (
     <Map
@@ -55,7 +60,7 @@ export function CyberMap() {
       )}
 
       {/* Render markers for source and target positions */}
-      {activeThreats.flatMap((threat) => [
+      {filteredThreats.flatMap((threat) => [
         // Source marker
         <MapMarker
           key={`${threat.id}-source`}

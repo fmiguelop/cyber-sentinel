@@ -65,7 +65,8 @@ export function computeThreatStats(threats: ThreatEvent[]): ThreatStats {
 
   // Find top source region
   const topSourceRegion =
-    Object.keys(sourceRegionCounts).length > 0
+    Object.keys(sourceRegionCounts).length > 0 &&
+    Object.values(sourceRegionCounts).some((count) => count > 0)
       ? (Object.entries(sourceRegionCounts).reduce((a, b) =>
           a[1] > b[1] ? a : b
         )[0] as City["region"])

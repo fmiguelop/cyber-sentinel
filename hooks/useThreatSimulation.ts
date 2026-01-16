@@ -22,14 +22,20 @@ const GENERATION_DELAY_MIN_MS = 500;
 const GENERATION_DELAY_MAX_MS = 2000;
 const EXPIRATION_CHECK_INTERVAL_MS = 500;
 
+// Dev-only speed override for performance testing
+// Set NEXT_PUBLIC_SIM_SPEED=fast in .env.local to accelerate simulation
+const SIM_SPEED_MULTIPLIER =
+  process.env.NEXT_PUBLIC_SIM_SPEED === "fast" ? 0.1 : 1; // 10x faster when enabled
+
 /**
  * Generates a random delay between min and max milliseconds
+ * Applies speed multiplier in dev mode for performance testing
  */
 function getRandomDelay(): number {
-  return (
+  const baseDelay =
     Math.random() * (GENERATION_DELAY_MAX_MS - GENERATION_DELAY_MIN_MS) +
-    GENERATION_DELAY_MIN_MS
-  );
+    GENERATION_DELAY_MIN_MS;
+  return baseDelay * SIM_SPEED_MULTIPLIER;
 }
 
 /**

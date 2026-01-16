@@ -7,27 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useThreatStore } from "@/stores/useThreatStore";
 import { severityToColorToken } from "@/lib/threats/random";
-import type { ThreatEvent, FilterState, TimeRange } from "@/lib/types/threats";
-
-// Helper to check if a threat matches filters (same logic as store)
-function matchesFilters(threat: ThreatEvent, filters: FilterState): boolean {
-  if (!filters.severity[threat.severity]) return false;
-  if (!filters.attackType[threat.type]) return false;
-  
-  if (filters.timeRange !== "all") {
-    const now = Date.now();
-    const threatAge = now - threat.timestamp;
-    const timeRangeMs: Record<TimeRange, number> = {
-      "1min": 60 * 1000,
-      "5min": 5 * 60 * 1000,
-      "1hr": 60 * 60 * 1000,
-      all: Infinity,
-    };
-    if (threatAge > timeRangeMs[filters.timeRange]) return false;
-  }
-  
-  return true;
-}
+import { matchesFilters } from "@/lib/threats/filters";
 
 export function EventLog() {
   const logs = useThreatStore((state) => state.logs);
@@ -46,7 +26,7 @@ export function EventLog() {
   }, [filteredLogs.length]);
 
   return (
-    <Card className="h-full border-border bg-card">
+    <Card className="h-full border-border bg-card ">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold">Live Event Log</CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
@@ -54,7 +34,7 @@ export function EventLog() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-32 rounded border border-border bg-background p-2 font-mono text-xs">
+        <ScrollArea className="h-full max-h-10 rounded border border-border bg-background p-2 font-mono text-xs">
           <div ref={scrollAreaRef}>
             {filteredLogs.length === 0 ? (
               <div className="text-muted-foreground">

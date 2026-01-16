@@ -9,10 +9,10 @@ import type {
   ThreatEvent,
   FilterState,
   ThreatStats,
-  TimeRange,
 } from "@/lib/types/threats";
 import { threatsToLineFeatureCollection } from "@/lib/threats/geojson";
 import { computeThreatStats } from "@/lib/threats/stats";
+import { matchesFilters } from "@/lib/threats/filters";
 
 const MAX_ACTIVE_THREATS = 30;
 const MAX_LOGS = 100;
@@ -79,39 +79,6 @@ interface ThreatStore {
 let mapUpdateTimer: ReturnType<typeof setTimeout> | null = null;
 const MAP_UPDATE_DEBOUNCE_MS = 100;
 
-/**
- * Helper to check if a threat matches the current filters
- */
-function matchesFilters(threat: ThreatEvent, filters: FilterState): boolean {
-  // Check severity filter
-  if (!filters.severity[threat.severity]) {
-    return false;
-  }
-
-  // Check attack type filter
-  if (!filters.attackType[threat.type]) {
-    return false;
-  }
-
-  // Check time range filter
-  if (filters.timeRange !== "all") {
-    const now = Date.now();
-    const threatAge = now - threat.timestamp;
-    const timeRangeMs: Record<TimeRange, number> = {
-      "1min": 60 * 1000,
-      "5min": 5 * 60 * 1000,
-      "1hr": 60 * 60 * 1000,
-      all: Infinity,
-    };
-
-    if (threatAge > timeRangeMs[filters.timeRange]) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 export const useThreatStore = create<ThreatStore>((set, get) => ({
   // Initial state
   activeThreats: [],
@@ -168,6 +135,8 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
         },
       },
     }));
+    // Trigger map feature update when filters change
+    get().updateMapFeatures();
   },
 
   pruneExpired: () => {
@@ -193,7 +162,11 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     // Set new debounced update
     mapUpdateTimer = setTimeout(() => {
       const state = get();
-      const features = threatsToLineFeatureCollection(state.activeThreats);
+      // Filter active threats based on current filters
+      const filteredThreats = state.activeThreats.filter((threat) =>
+        matchesFilters(threat, state.filters)
+      );
+      const features = threatsToLineFeatureCollection(filteredThreats);
       set({ mapFeatures: features });
       mapUpdateTimer = null;
     }, MAP_UPDATE_DEBOUNCE_MS);
