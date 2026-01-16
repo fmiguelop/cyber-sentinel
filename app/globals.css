@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* SOC Theme Colors - Dark Background */
+  --background: 9 9 11; /* #09090b - Zinc 950 */
+  --foreground: 228 228 231; /* #e4e4e7 - Zinc 200 */
+  
+  /* Surface Colors */
+  --card: 24 24 27; /* #18181b - Zinc 900 */
+  --card-foreground: 228 228 231; /* #e4e4e7 - Zinc 200 */
+  --popover: 24 24 27; /* #18181b - Zinc 900 */
+  --popover-foreground: 228 228 231; /* #e4e4e7 - Zinc 200 */
+  
+  /* Muted Colors */
+  --muted: 39 39 42; /* #27272a - Zinc 800 */
+  --muted-foreground: 161 161 170; /* #a1a1aa - Zinc 400 */
+  
+  /* Border & Input */
+  --border: 39 39 42; /* #27272a - Zinc 800 */
+  --input: 39 39 42; /* #27272a - Zinc 800 */
+  --ring: 34 197 94; /* #22c55e - Green 500 */
+  
+  /* Primary Accent (Neon Green) */
+  --primary: 34 197 94; /* #22c55e - Green 500 */
+  --primary-foreground: 9 9 11; /* #09090b - Zinc 950 */
+  
+  /* Secondary */
+  --secondary: 39 39 42; /* #27272a - Zinc 800 */
+  --secondary-foreground: 228 228 231; /* #e4e4e7 - Zinc 200 */
+  
+  /* Accent */
+  --accent: 39 39 42; /* #27272a - Zinc 800 */
+  --accent-foreground: 228 228 231; /* #e4e4e7 - Zinc 200 */
+  
+  /* Destructive (Critical Red) */
+  --destructive: 239 68 68; /* #ef4444 - Red 500 */
+  --destructive-foreground: 228 228 231; /* #e4e4e7 - Zinc 200 */
+  
+  /* Severity Colors */
+  --severity-low: 34 197 94; /* #22c55e - Green 500 */
+  --severity-medium: 234 179 8; /* #eab308 - Yellow 500 */
+  --severity-critical: 239 68 68; /* #ef4444 - Red 500 */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Map CSS variables to Tailwind color tokens */
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+  --color-destructive: rgb(var(--destructive));
+  --color-destructive-foreground: rgb(var(--destructive-foreground));
+  
+  /* Severity colors */
+  --color-severity-low: rgb(var(--severity-low));
+  --color-severity-medium: rgb(var(--severity-medium));
+  --color-severity-critical: rgb(var(--severity-critical));
+  
+  /* Font Configuration */
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: var(--font-mono);
 }
