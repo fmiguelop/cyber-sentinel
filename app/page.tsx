@@ -32,8 +32,8 @@ export default function Home() {
           <ControlPanel />
         </div>
 
-        {/* Live Event Log - Bottom left, same width as map (rows 11-12, cols 1-9) */}
-        <div className="col-span-9 row-span-2">
+        {/* Live Event Log - Responsive docking: under-map on desktop, full-width overlay on mobile */}
+        <div className="col-span-12 md:col-span-9 row-span-0 md:row-span-2 fixed md:static bottom-0 left-0 right-0 md:right-auto z-50 md:z-auto px-4 pb-4 md:p-0 md:px-0 md:pb-0 flex md:flex-col md:items-end md:justify-end">
           <EventLog />
         </div>
       </div>
