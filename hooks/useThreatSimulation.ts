@@ -54,9 +54,7 @@ export function useThreatSimulation() {
   const expirationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null
   );
-  const batchIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null
-  );
+  const batchIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const threatBufferRef = useRef<ThreatEvent[]>([]);
 
   // Batch flush effect: periodically flush accumulated threats

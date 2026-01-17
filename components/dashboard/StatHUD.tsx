@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Info } from "lucide-react";
+import { Filter, Info } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -443,7 +443,10 @@ export function StatHUD() {
         <Separator />
 
         <div className="pt-3 space-y-2">
-          <div className="text-xs text-gray-400">🎯 Active Filters</div>
+          <div className="text-xs text-gray-400 flex items-center gap-2">
+            <Filter className="w-4 h-4" />
+            Active Filters
+          </div>
           {hasNarrowingFilters ? (
             <div className="flex flex-wrap items-center gap-2">
               {activeSeverityBadges.map((sev) => {

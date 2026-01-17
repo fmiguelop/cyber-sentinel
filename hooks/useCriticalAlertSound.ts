@@ -40,10 +40,7 @@ function playAlertBeep(ctx: AudioContext) {
     oscillator.frequency.value = 800;
     oscillator.type = "sine";
     gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(
-      0.01,
-      ctx.currentTime + 0.1
-    );
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
 
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.1);

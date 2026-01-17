@@ -12,9 +12,7 @@ export type CompiledFilter = (threat: ThreatEvent) => boolean;
 export function compileFilters(filters: FilterState): CompiledFilter {
   const now = Date.now();
   const cutoffTimestamp =
-    filters.timeRange === "all"
-      ? 0
-      : now - TIME_RANGE_MS[filters.timeRange];
+    filters.timeRange === "all" ? 0 : now - TIME_RANGE_MS[filters.timeRange];
 
   return (threat: ThreatEvent) => {
     if (!filters.severity[threat.severity]) {

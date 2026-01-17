@@ -2,11 +2,7 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import MapLibreGL from "maplibre-gl";
-import {
-  Map,
-  MapLineLayer,
-  useMap,
-} from "@/components/ui/map";
+import { Map, MapLineLayer, useMap } from "@/components/ui/map";
 import { useThreatStore, selectFilteredThreats } from "@/stores/useThreatStore";
 import { threatsToPointFeatureCollection } from "@/lib/threats/geojson";
 import type { ThreatEvent } from "@/lib/types/threats";
@@ -29,7 +25,9 @@ function ThreatPointLayer({
   const sourceId = "threat-points";
   const layerId = "threat-points-layer";
   const onPointClickRef = useRef(onPointClick);
-  const threatsMapRef = useRef<globalThis.Map<string, ThreatEvent>>(new globalThis.Map());
+  const threatsMapRef = useRef<globalThis.Map<string, ThreatEvent>>(
+    new globalThis.Map()
+  );
   const popupRef = useRef<MapLibreGL.Popup | null>(null);
 
   // Update threats map for quick lookup
