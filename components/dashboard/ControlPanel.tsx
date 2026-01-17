@@ -386,7 +386,7 @@ export function ControlPanel() {
   };
   return (
     <Card
-      className="h-fit border-border bg-card shadow-lg"
+      className="h-fit border-border bg-card shadow-lg overflow-y-auto"
       role="region"
       aria-label="Control Panel"
     >
