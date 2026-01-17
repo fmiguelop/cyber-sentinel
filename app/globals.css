@@ -1,49 +1,39 @@
 @import "tailwindcss";
 
 :root {
-  
-  --background: 9 9 11; 
-  --foreground: 228 228 231; 
+  --background: 9 9 11;
+  --foreground: 228 228 231;
 
-  
-  --card: 24 24 27; 
-  --card-foreground: 228 228 231; 
-  --popover: 24 24 27; 
-  --popover-foreground: 228 228 231; 
+  --card: 24 24 27;
+  --card-foreground: 228 228 231;
+  --popover: 24 24 27;
+  --popover-foreground: 228 228 231;
 
-  
-  --muted: 39 39 42; 
-  --muted-foreground: 161 161 170; 
+  --muted: 39 39 42;
+  --muted-foreground: 161 161 170;
 
-  
-  --border: 39 39 42; 
-  --input: 39 39 42; 
-  --ring: 34 197 94; 
+  --border: 39 39 42;
+  --input: 39 39 42;
+  --ring: 34 197 94;
 
-  
-  --primary: 34 197 94; 
-  --primary-foreground: 9 9 11; 
+  --primary: 34 197 94;
+  --primary-foreground: 9 9 11;
 
-  
-  --secondary: 39 39 42; 
-  --secondary-foreground: 228 228 231; 
+  --secondary: 39 39 42;
+  --secondary-foreground: 228 228 231;
 
-  
-  --accent: 39 39 42; 
-  --accent-foreground: 228 228 231; 
+  --accent: 39 39 42;
+  --accent-foreground: 228 228 231;
 
-  
-  --destructive: 239 68 68; 
-  --destructive-foreground: 228 228 231; 
+  --destructive: 239 68 68;
+  --destructive-foreground: 228 228 231;
 
-  
-  --severity-low: 34 197 94; 
-  --severity-medium: 234 179 8; 
-  --severity-critical: 239 68 68; 
+  --severity-low: 34 197 94;
+  --severity-medium: 234 179 8;
+  --severity-critical: 239 68 68;
 }
 
 @theme inline {
-  
   --color-background: rgb(var(--background));
   --color-foreground: rgb(var(--foreground));
   --color-card: rgb(var(--card));
@@ -64,13 +54,13 @@
   --color-destructive: rgb(var(--destructive));
   --color-destructive-foreground: rgb(var(--destructive-foreground));
 
-  
   --color-severity-low: rgb(var(--severity-low));
   --color-severity-medium: rgb(var(--severity-medium));
   --color-severity-critical: rgb(var(--severity-critical));
 
-  
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
 }
 
 body {
@@ -86,8 +76,7 @@ body {
   .maplibregl-popup-tip {
     @apply hidden!;
   }
-  
-  
+
   .sr-only {
     position: absolute;
     width: 1px;
@@ -99,21 +88,19 @@ body {
     white-space: nowrap;
     border-width: 0;
   }
-  
-  
+
   .glow-critical {
     box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
   }
-  
+
   .glow-medium {
     box-shadow: 0 0 6px rgba(234, 179, 8, 0.2);
   }
-  
+
   .glow-low {
     box-shadow: 0 0 4px rgba(34, 197, 94, 0.2);
   }
-  
-  
+
   *:focus-visible {
     outline: 2px solid rgb(var(--ring));
     outline-offset: 2px;

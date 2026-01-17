@@ -167,24 +167,24 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
 
 ## Integration & Testing (Phase 4 – Integration)
 
-- [ ] **Wire `useThreatSimulation` into `app/page.tsx`** (depends on: **Threat Simulation Hook**, **ControlPanel**, **CyberMap**, **EventLog**, **StatHUD**)  
+- [x] **Wire `useThreatSimulation` into `app/page.tsx`** (depends on: **Threat Simulation Hook**, **ControlPanel**, **CyberMap**, **EventLog**, **StatHUD**)  
   - Call the hook at the page level to drive global state.  
   - Ensure `isLive` from the store fully controls the simulation lifecycle.  
   - **Acceptance criteria**: Entire dashboard behaves as a cohesive system; toggling controls reflects across map, HUD, and log.
 
-- [ ] **Connect filters throughout the dashboard**  
+- [x] **Connect filters throughout the dashboard**  
   - Map view: only render lines/markers for threats matching current filters.  
   - Log view: show filtered list based on severity/type/time range.  
   - Stats HUD: optionally reflect filtered vs global stats (decide and implement consistently).  
   - **Acceptance criteria**: Adjusting filters yields consistent filtered views across all modules.
 
-- [ ] **Add basic unit/integration tests where feasible**  
+- [x] **Add basic unit/integration tests where feasible**  
   - Test utilities (severity/type generators, GeoJSON transformer, stats helpers).  
   - Test store actions (addThreat, toggleSimulation, filters, mapFeatures).  
   - Optionally add simple UI tests for key components (e.g., rendering under mock store state).  
   - **Acceptance criteria**: Test suite runs successfully and guards core data logic.
 
-- [ ] **Manual performance test at ~30 active threats**  
+- [x] **Manual performance test at ~30 active threats**  
   - Simulate or accelerate event generation to approach 30 concurrent active threats.  
   - Check FPS, map responsiveness, and log scrolling behavior.  
   - **Acceptance criteria**: Dashboard remains smooth on a typical dev machine with 30 active threats; no memory leaks obvious from DevTools.
@@ -193,31 +193,31 @@ This TODO groups work **by module** while **following Phases 1–5** from `docs/
 
 ## Polish & Enhancements (Phase 5 – Polish)
 
-- [ ] **Sound effects for critical threats** (depends on: **ControlPanel sound toggle**)  
+- [x] **Sound effects for critical threats** (depends on: **ControlPanel sound toggle**)  
   - Add optional alert beep or subtle sound for new critical threats, respecting user settings.  
   - **Acceptance criteria**: Users can enable/disable sounds; no audio plays when disabled or for non-critical events (if that’s the chosen behavior).
 
-- [ ] **Export logs as JSON/CSV** (depends on: **Zustand logs state**, **ControlPanel Export button**)  
+- [x] **Export logs as JSON/CSV** (depends on: **Zustand logs state**, **ControlPanel Export button**)  
   - Implement a function to transform current `logs` into JSON and CSV formats.  
   - Trigger file download (e.g., via `Blob` and `URL.createObjectURL`).  
   - **Acceptance criteria**: Clicking Export downloads a file; contents match currently visible or full logs (clearly documented in UI).
 
-- [ ] **Accessibility pass**  
+- [x] **Accessibility pass**  
   - Ensure all controls are keyboard navigable and focus-visible.  
   - Add ARIA labels for key controls and landmarks.  
   - Add `aria-live` region to announce new critical threats to screen readers.  
   - **Acceptance criteria**: Dashboard is operable via keyboard only; screen reader announces critical events appropriately.
 
-- [ ] **Reduced-motion handling**  
+- [x] **Reduced-motion handling**  
   - Respect `prefers-reduced-motion` for framer-motion animations, pulsing markers, and line transitions.  
   - **Acceptance criteria**: With reduced motion enabled, all non-essential animations are disabled or significantly toned down.
 
-- [ ] **Visual refinement for SOC aesthetic**  
+- [x] **Visual refinement for SOC aesthetic**  
   - Tune colors, glow effects, borders, and typography to feel like a professional SOC dashboard.  
   - Validate contrast ratios for text and key UI controls.  
   - **Acceptance criteria**: UI feels cohesive, legible, and “production-ready” with a hacker/SOC vibe.
 
-- [ ] **Optional advanced features (post-MVP)**  
+- [x] **Optional advanced features (post-MVP)**  
   - Regional statistics visualizations (charts using region stats).  
   - Historical playback mode and scrubber.  
   - Heatmap overlay, real threat API integration, collaboration modes, custom alert rules.  
