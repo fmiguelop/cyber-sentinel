@@ -218,6 +218,17 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     mapInstance.setStyle(newStyle, { diff: true });
   }, [mapInstance, resolvedTheme, mapStyles, clearStyleTimeout]);
 
+  // Handle projection changes after map is loaded and style is ready
+  useEffect(() => {
+    if (!mapInstance || !isStyleLoaded || !projection) return;
+
+    try {
+      mapInstance.setProjection(projection);
+    } catch (error) {
+      console.error("Error setting projection:", error);
+    }
+  }, [mapInstance, isStyleLoaded, projection]);
+
   const contextValue = useMemo(
     () => ({
       map: mapInstance,

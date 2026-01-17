@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import {
   Map,
@@ -13,6 +13,8 @@ import { useThreatStore } from "@/stores/useThreatStore";
 import { severityToColorToken } from "@/lib/threats/random";
 import { matchesFilters } from "@/lib/threats/filters";
 import type { ThreatEvent } from "@/lib/types/threats";
+import { Button } from "../ui/button";
+import { Globe, MapIcon } from "lucide-react";
 
 /**
  * Check if user prefers reduced motion
@@ -57,6 +59,7 @@ function ThreatMarkerDot({ severity }: { severity: ThreatEvent["severity"] }) {
  * CyberMap component - renders the threat visualization map
  */
 export function CyberMap() {
+  const [mapType, setMapType] = useState<"globe" | "flat">("globe");
   const mapFeatures = useThreatStore((state) => state.mapFeatures);
   const activeThreats = useThreatStore((state) => state.activeThreats);
   const filters = useThreatStore((state) => state.filters);
@@ -64,11 +67,19 @@ export function CyberMap() {
     matchesFilters(threat, filters)
   );
 
+  const handleMapTypeChange = () => {
+    setMapType((prev) => prev === "globe" ? "flat" : "globe");
+  };
+
   return (
-    <div role="region" aria-label="Threat Visualization Map" className="h-full w-full">
+    <div role="region" aria-label="Threat Visualization Map" className="h-full w-full relative">
+      <Button variant="outline" size="sm" onClick={handleMapTypeChange} className="absolute top-4 right-4 z-10">
+        {mapType === "flat" ? <Globe className="w-4 h-4" /> : <MapIcon className="w-4 h-4" />}
+        {mapType === "flat" ? "Globe View" : "Flat View"}
+      </Button>
       <Map
         theme="dark"
-        projection={{ type: "globe" }}
+        projection={{ type: mapType }}
         center={[0, 20]}
         zoom={1.5}
       >

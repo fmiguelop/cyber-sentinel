@@ -9,7 +9,6 @@ import { CyberMap } from "@/components/map/CyberMap";
 import { StatHUD } from "@/components/dashboard/StatHUD";
 import { ControlPanel } from "@/components/dashboard/ControlPanel";
 import { ResponsiveLog } from "@/components/dashboard/ResponsiveLog";
-import { Logo } from "@/components/branding/logo";
 import { DefconCard } from "@/components/dashboard/StatHUD";
 import { ControlsCard, FiltersCard } from "@/components/dashboard/ControlPanel";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Logo } from "@/components/branding/logo";
 
 /**
  * Mobile Header Component - displays icon logo and menu button
