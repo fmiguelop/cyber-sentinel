@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -10,242 +9,152 @@ import { useThreatStore } from "@/stores/useThreatStore";
 import { severityToColorToken } from "@/lib/threats/random";
 import { matchesFilters } from "@/lib/threats/filters";
 import { ChevronUp, ChevronDown } from "lucide-react";
-
 type LogPanelSize = "min" | "normal" | "max";
-
-// Mobile heights: collapsed (min) and expanded (max)
 const MOBILE_HEIGHTS = {
-  min: "h-16", // Collapsed - just header visible
-  max: "h-[60vh]", // Expanded - takes up most of screen
+    min: "h-16",
+    max: "h-[60vh]",
 } as const;
-
-// Desktop height: matches grid row-span-2
-const DESKTOP_HEIGHT = "calc((100vh - 13rem) / 6)"; // ~2 row height
-
+const DESKTOP_HEIGHT = "calc((100vh - 13rem) / 6)";
 const SIZE_ENTRY_LIMITS = {
-  min: 3,
-  normal: 10,
-  max: Infinity,
+    min: 3,
+    normal: 10,
+    max: Infinity,
 } as const;
-
 const STORAGE_KEY = "cybersentinel-log-panel-size";
-
-/**
- * ResponsiveLog Component - handles mobile overlay and desktop static positioning
- */
 export function ResponsiveLog() {
-  const logs = useThreatStore((state) => state.logs);
-  const filters = useThreatStore((state) => state.filters);
-  const filteredLogs = logs.filter((threat) => matchesFilters(threat, filters));
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const shouldReduceMotion = useReducedMotion();
-  
-  // Detect if we're on mobile/tablet (screen width < 1024px)
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-  
-  // Initialize size state: mobile/tablet defaults to "min" (collapsed), desktop (lg+) to "normal"
-  const [panelSize, setPanelSize] = useState<LogPanelSize>(() => {
-    if (typeof window !== "undefined") {
-      const stored = sessionStorage.getItem(STORAGE_KEY) as LogPanelSize | null;
-      if (stored && ["min", "normal", "max"].includes(stored)) {
-        // On desktop (lg+), if stored is "min", convert to "normal"
-        if (window.innerWidth >= 1024 && stored === "min") {
-          return "normal";
+    const logs = useThreatStore((state) => state.logs);
+    const filters = useThreatStore((state) => state.filters);
+    const filteredLogs = logs.filter((threat) => matchesFilters(threat, filters));
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const shouldReduceMotion = useReducedMotion();
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 1024);
+        };
+        checkMobile();
+        window.addEventListener("resize", checkMobile);
+        return () => window.removeEventListener("resize", checkMobile);
+    }, []);
+    const [panelSize, setPanelSize] = useState<LogPanelSize>(() => {
+        if (typeof window !== "undefined") {
+            const stored = sessionStorage.getItem(STORAGE_KEY) as LogPanelSize | null;
+            if (stored && ["min", "normal", "max"].includes(stored)) {
+                if (window.innerWidth >= 1024 && stored === "min") {
+                    return "normal";
+                }
+                return stored;
+            }
+            return window.innerWidth >= 1024 ? "normal" : "min";
         }
-        return stored;
-      }
-      // Default: "normal" on desktop (lg+), "min" (collapsed) on mobile/tablet
-      return window.innerWidth >= 1024 ? "normal" : "min";
-    }
-    return "normal"; // SSR default
-  });
-  
-  // Lock panel to "normal" size on desktop (no resizing allowed)
-  useEffect(() => {
-    if (!isMobile && panelSize !== "normal") {
-      setPanelSize("normal");
-    }
-  }, [isMobile, panelSize]);
-  
-  // Persist size to sessionStorage when it changes (but not "min" on desktop)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Don't persist "min" on desktop - convert to "normal" instead
-      const sizeToStore = !isMobile && panelSize === "min" ? "normal" : panelSize;
-      sessionStorage.setItem(STORAGE_KEY, sizeToStore);
-    }
-  }, [panelSize, isMobile]);
-
-  // Mobile toggle handler: cycles between min (collapsed) and max (expanded)
-  const handleMobileToggle = useCallback(() => {
-    if (!isMobile) return;
-    setPanelSize((current) => (current === "min" ? "max" : "min"));
-  }, [isMobile]);
-
-  // Track critical threats for aria-live announcements
-  const previousCriticalIdsRef = useRef<Set<string>>(new Set());
-  const criticalAnnouncementsRef = useRef<string[]>([]);
-  
-  useEffect(() => {
-    // Find new critical threats
-    const newCriticalThreats = filteredLogs
-      .filter(
-        (threat) =>
-          threat.severity === "critical" &&
-          !previousCriticalIdsRef.current.has(threat.id)
-      )
-      .slice(0, 5); // Limit to 5 most recent to avoid overwhelming screen readers
-    
-    if (newCriticalThreats.length > 0) {
-      newCriticalThreats.forEach((threat) => {
-        previousCriticalIdsRef.current.add(threat.id);
-        const announcement = `Critical ${threat.type} threat from ${threat.source.name} to ${threat.target.name}`;
-        criticalAnnouncementsRef.current.push(announcement);
-      });
-      
-      // Clean up old announcements
-      if (criticalAnnouncementsRef.current.length > 10) {
-        criticalAnnouncementsRef.current = criticalAnnouncementsRef.current.slice(-5);
-      }
-    }
-  }, [filteredLogs]);
-
-  // Auto-scroll to top when new entries are added (only in max mode on mobile)
-  useEffect(() => {
-    if (isMobile && panelSize === "max" && scrollAreaRef.current) {
-      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (viewport) {
-        viewport.scrollTop = 0;
-      }
-    }
-  }, [filteredLogs.length, panelSize, isMobile]);
-
-  // Determine which entries to show based on panel size
-  const displayedLogs =
-    panelSize === "max" || !isMobile
-      ? filteredLogs
-      : filteredLogs.slice(0, SIZE_ENTRY_LIMITS[panelSize]);
-
-  // Determine height based on mobile/desktop and panel size
-  const heightValue = isMobile
-    ? panelSize === "min"
-      ? "4rem" // Collapsed height
-      : "60vh" // Expanded height
-    : DESKTOP_HEIGHT; // Desktop static height
-
-  return (
-    <motion.div
-      animate={{
-        height: heightValue,
-      }}
-      transition={{
-        type: "spring",
-        damping: 20,
-        stiffness: 300,
-      }}
-      className={`overflow-hidden w-full ${
-        isMobile
-          ? "fixed bottom-0 left-0 right-0 z-40 px-4 pb-4"
-          : "w-full self-end"
-      }`}
-    >
+        return "normal";
+    });
+    useEffect(() => {
+        if (!isMobile && panelSize !== "normal") {
+            setPanelSize("normal");
+        }
+    }, [isMobile, panelSize]);
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const sizeToStore = !isMobile && panelSize === "min" ? "normal" : panelSize;
+            sessionStorage.setItem(STORAGE_KEY, sizeToStore);
+        }
+    }, [panelSize, isMobile]);
+    const handleMobileToggle = useCallback(() => {
+        if (!isMobile)
+            return;
+        setPanelSize((current) => (current === "min" ? "max" : "min"));
+    }, [isMobile]);
+    const previousCriticalIdsRef = useRef<Set<string>>(new Set());
+    const [criticalAnnouncements, setCriticalAnnouncements] = useState<string[]>([]);
+    useEffect(() => {
+        const newCriticalThreats = filteredLogs
+            .filter((threat) => threat.severity === "critical" &&
+            !previousCriticalIdsRef.current.has(threat.id))
+            .slice(0, 5);
+        if (newCriticalThreats.length > 0) {
+            const newAnnouncements: string[] = [];
+            newCriticalThreats.forEach((threat) => {
+                previousCriticalIdsRef.current.add(threat.id);
+                const announcement = `Critical ${threat.type} threat from ${threat.source.name} to ${threat.target.name}`;
+                newAnnouncements.push(announcement);
+            });
+            setCriticalAnnouncements((prev) => {
+                const updated = [...prev, ...newAnnouncements];
+                return updated.length > 10 ? updated.slice(-5) : updated;
+            });
+        }
+    }, [filteredLogs]);
+    useEffect(() => {
+        if (isMobile && panelSize === "max" && scrollAreaRef.current) {
+            const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = 0;
+            }
+        }
+    }, [filteredLogs.length, panelSize, isMobile]);
+    const displayedLogs = panelSize === "max" || !isMobile
+        ? filteredLogs
+        : filteredLogs.slice(0, SIZE_ENTRY_LIMITS[panelSize]);
+    const heightValue = isMobile
+        ? panelSize === "min"
+            ? "4rem"
+            : "60vh"
+        : DESKTOP_HEIGHT;
+    return (<motion.div animate={{
+            height: heightValue,
+        }} transition={{
+            type: "spring",
+            damping: 20,
+            stiffness: 300,
+        }} className={`overflow-hidden w-full ${isMobile
+            ? "fixed bottom-0 left-0 right-0 z-40 px-4 pb-4"
+            : "w-full self-end"}`}>
       <Card className="h-full border-border bg-card shadow-lg flex flex-col" role="region" aria-label="Live Event Log">
-        {/* Header bar with controls */}
-        <CardHeader
-          className="pb-2 pt-3 px-4 shrink-0 border-b border-border cursor-pointer"
-          onClick={isMobile ? handleMobileToggle : undefined}
-        >
+        
+        <CardHeader className="pb-2 pt-3 px-4 shrink-0 border-b border-border cursor-pointer" onClick={isMobile ? handleMobileToggle : undefined}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {/* Resize handle visual cue - only show on mobile */}
-              {isMobile && (
-                <div className="w-8 h-0.5 bg-muted-foreground/30 rounded-full" />
-              )}
+              
+              {isMobile && (<div className="w-8 h-0.5 bg-muted-foreground/30 rounded-full"/>)}
               <CardTitle className="text-sm font-semibold">Live Event Log</CardTitle>
               <span className="text-xs text-muted-foreground font-mono">
                 ({filteredLogs.length} events)
               </span>
             </div>
-            {/* Mobile toggle button */}
-            {isMobile && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleMobileToggle();
-                }}
-                aria-label={
-                  panelSize === "min"
-                    ? "Expand log panel"
-                    : "Collapse log panel"
-                }
-                title={panelSize === "min" ? "Expand" : "Collapse"}
-              >
-                {panelSize === "min" ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </Button>
-            )}
+            
+            {isMobile && (<Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring" onClick={(e) => {
+                e.stopPropagation();
+                handleMobileToggle();
+            }} aria-label={panelSize === "min"
+                ? "Expand log panel"
+                : "Collapse log panel"} title={panelSize === "min" ? "Expand" : "Collapse"}>
+                {panelSize === "min" ? (<ChevronUp className="h-4 w-4"/>) : (<ChevronDown className="h-4 w-4"/>)}
+              </Button>)}
           </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden p-0">
-          {/* aria-live region for critical threat announcements */}
-          <div
-            aria-live="polite"
-            aria-atomic="true"
-            className="sr-only"
-          >
-            {criticalAnnouncementsRef.current.map((announcement, idx) => (
-              <div key={idx}>{announcement}</div>
-            ))}
+          
+          <div aria-live="polite" aria-atomic="true" className="sr-only">
+            {criticalAnnouncements.map((announcement, idx) => (<div key={idx}>{announcement}</div>))}
           </div>
           <ScrollArea className="h-full rounded border-t border-border bg-background p-2 font-mono text-xs">
             <div ref={scrollAreaRef}>
-              {displayedLogs.length === 0 ? (
-                <div className="text-muted-foreground">
+              {displayedLogs.length === 0 ? (<div className="text-muted-foreground">
                   [SYSTEM] CyberSentinel initialized. Waiting for threat events...
-                </div>
-              ) : (
-                <AnimatePresence mode="popLayout" initial={false}>
+                </div>) : (<AnimatePresence mode="popLayout" initial={false}>
                   {displayedLogs.map((log) => {
-                    const severityColor = severityToColorToken(log.severity);
-                    return (
-                      <motion.div
-                        key={log.id}
-                        initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -10 }}
-                        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                        exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
-                        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
-                        className="mb-1"
-                      >
+                const severityColor = severityToColorToken(log.severity);
+                return (<motion.div key={log.id} initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -10 }} animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }} exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, height: 0 }} transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }} className="mb-1">
                         <div className="flex items-start gap-2 text-foreground">
                           <span className="text-muted-foreground">
                             [{format(new Date(log.timestamp), "HH:mm:ss")}]
                           </span>
-                          <span
-                            className={`font-semibold ${
-                              log.severity === "critical"
-                                ? "glow-critical"
-                                : log.severity === "medium"
-                                ? "glow-medium"
-                                : "glow-low"
-                            }`}
-                            style={{ color: severityColor }}
-                          >
+                          <span className={`font-semibold ${log.severity === "critical"
+                        ? "glow-critical"
+                        : log.severity === "medium"
+                            ? "glow-medium"
+                            : "glow-low"}`} style={{ color: severityColor }}>
                             [{log.severity.toUpperCase()}]
                           </span>
                           <span>{log.type}</span>
@@ -257,15 +166,12 @@ export function ResponsiveLog() {
                             ({log.metadata.ipAddress})
                           </span>
                         </div>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              )}
+                      </motion.div>);
+            })}
+                </AnimatePresence>)}
             </div>
           </ScrollArea>
         </CardContent>
       </Card>
-    </motion.div>
-  );
+    </motion.div>);
 }
