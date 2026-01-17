@@ -6,9 +6,9 @@ import type {
 } from "@/lib/types/threats";
 import { threatsToLineFeatureCollection } from "@/lib/threats/geojson";
 import { computeThreatStats } from "@/lib/threats/stats";
-import { matchesFilters } from "@/lib/threats/filters";
-const MAX_ACTIVE_THREATS = 30;
-const MAX_LOGS = 100;
+import { compileFilters, type CompiledFilter } from "@/lib/threats/filters";
+const MAX_ACTIVE_THREATS = 100;
+const MAX_LOGS = 1000;
 const defaultFilters: FilterState = {
   severity: {
     low: true,
@@ -51,6 +51,7 @@ interface ThreatStore {
   mapFeatures: GeoJSON.FeatureCollection<GeoJSON.LineString> | null;
   soundEnabled: boolean;
   addThreat: (threat: ThreatEvent) => void;
+  addThreats: (threats: ThreatEvent[]) => void;
   toggleSimulation: () => void;
   resetSimulation: () => void;
   setFilters: (filters: Partial<FilterState>) => void;
@@ -70,12 +71,17 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   mapFeatures: null,
   soundEnabled: true,
   addThreat: (threat: ThreatEvent) => {
+    get().addThreats([threat]);
+  },
+  addThreats: (threats: ThreatEvent[]) => {
+    if (threats.length === 0) return;
     set((state) => {
-      const newActiveThreats = [threat, ...state.activeThreats].slice(
+      // Batch add threats: prepend new threats, then slice to max sizes
+      const newActiveThreats = [...threats, ...state.activeThreats].slice(
         0,
         MAX_ACTIVE_THREATS
       );
-      const newLogs = [threat, ...state.logs].slice(0, MAX_LOGS);
+      const newLogs = [...threats, ...state.logs].slice(0, MAX_LOGS);
       const newStatsGlobal = computeThreatStats(newLogs);
       return {
         activeThreats: newActiveThreats,
@@ -141,9 +147,8 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     }
     mapUpdateTimer = setTimeout(() => {
       const state = get();
-      const filteredThreats = state.activeThreats.filter((threat) =>
-        matchesFilters(threat, state.filters)
-      );
+      const compiledFilter = getCompiledFilter(state.filters);
+      const filteredThreats = state.activeThreats.filter(compiledFilter);
       const features = threatsToLineFeatureCollection(filteredThreats);
       set({ mapFeatures: features });
       mapUpdateTimer = null;
@@ -155,17 +160,82 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     }));
   },
 }));
-export const selectFilteredLogs = (state: ThreatStore) => {
-  return state.logs.filter((threat) => matchesFilters(threat, state.filters));
+// Memoization cache for compiled filters
+const filterCache = new WeakMap<FilterState, CompiledFilter>();
+let lastFilterKey: string = "";
+
+function getCompiledFilter(filters: FilterState): CompiledFilter {
+  const filterKey = JSON.stringify(filters);
+  if (filterKey === lastFilterKey && filterCache.has(filters)) {
+    return filterCache.get(filters)!;
+  }
+  const compiled = compileFilters(filters);
+  filterCache.set(filters, compiled);
+  lastFilterKey = filterKey;
+  return compiled;
+}
+
+// Memoized selectors with result caching
+let cachedFilteredLogs: ThreatEvent[] | null = null;
+let cachedFilteredLogsFilterKey: string = "";
+let cachedFilteredLogsArray: ThreatEvent[] | null = null;
+
+let cachedFilteredThreats: ThreatEvent[] | null = null;
+let cachedFilteredThreatsFilterKey: string = "";
+let cachedFilteredThreatsArray: ThreatEvent[] | null = null;
+
+let cachedStatsFiltered: ThreatStats | null = null;
+let cachedStatsFilteredFilterKey: string = "";
+let cachedStatsFilteredArray: ThreatEvent[] | null = null;
+
+export const selectFilteredLogs = (state: ThreatStore): ThreatEvent[] => {
+  const filterKey = JSON.stringify(state.filters);
+  if (
+    cachedFilteredLogs &&
+    cachedFilteredLogsFilterKey === filterKey &&
+    cachedFilteredLogsArray === state.logs
+  ) {
+    return cachedFilteredLogs;
+  }
+  const compiledFilter = getCompiledFilter(state.filters);
+  const filtered = state.logs.filter(compiledFilter);
+  cachedFilteredLogs = filtered;
+  cachedFilteredLogsFilterKey = filterKey;
+  cachedFilteredLogsArray = state.logs;
+  return filtered;
 };
-export const selectFilteredThreats = (state: ThreatStore) => {
-  return state.activeThreats.filter((threat) =>
-    matchesFilters(threat, state.filters)
-  );
+
+export const selectFilteredThreats = (state: ThreatStore): ThreatEvent[] => {
+  const filterKey = JSON.stringify(state.filters);
+  if (
+    cachedFilteredThreats &&
+    cachedFilteredThreatsFilterKey === filterKey &&
+    cachedFilteredThreatsArray === state.activeThreats
+  ) {
+    return cachedFilteredThreats;
+  }
+  const compiledFilter = getCompiledFilter(state.filters);
+  const filtered = state.activeThreats.filter(compiledFilter);
+  cachedFilteredThreats = filtered;
+  cachedFilteredThreatsFilterKey = filterKey;
+  cachedFilteredThreatsArray = state.activeThreats;
+  return filtered;
 };
-export const selectStatsFiltered = (state: ThreatStore) => {
-  const filteredLogs = state.logs.filter((threat) =>
-    matchesFilters(threat, state.filters)
-  );
-  return computeThreatStats(filteredLogs);
+
+export const selectStatsFiltered = (state: ThreatStore): ThreatStats => {
+  const filterKey = JSON.stringify(state.filters);
+  if (
+    cachedStatsFiltered &&
+    cachedStatsFilteredFilterKey === filterKey &&
+    cachedStatsFilteredArray === state.logs
+  ) {
+    return cachedStatsFiltered;
+  }
+  const compiledFilter = getCompiledFilter(state.filters);
+  const filteredLogs = state.logs.filter(compiledFilter);
+  const stats = computeThreatStats(filteredLogs);
+  cachedStatsFiltered = stats;
+  cachedStatsFilteredFilterKey = filterKey;
+  cachedStatsFilteredArray = state.logs;
+  return stats;
 };

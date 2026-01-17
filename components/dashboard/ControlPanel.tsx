@@ -46,8 +46,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useThreatStore } from "@/stores/useThreatStore";
-import { matchesFilters } from "@/lib/threats/filters";
+import { useThreatStore, selectFilteredLogs } from "@/stores/useThreatStore";
 import { logsToJson, logsToCsv, downloadTextFile } from "@/lib/threats/export";
 import type { Severity, AttackType, TimeRange } from "@/lib/types/threats";
 export function ControlsCard() {
@@ -355,9 +354,8 @@ export function FiltersCard() {
   );
 }
 export function ControlPanel() {
-  const filters = useThreatStore((state) => state.filters);
   const logs = useThreatStore((state) => state.logs);
-  const filteredLogs = logs.filter((threat) => matchesFilters(threat, filters));
+  const filteredLogs = useThreatStore(selectFilteredLogs);
   const handleExportFilteredJson = () => {
     const content = logsToJson(filteredLogs);
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");

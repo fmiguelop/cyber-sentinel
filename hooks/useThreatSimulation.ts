@@ -11,6 +11,7 @@ import { useThreatStore } from "@/stores/useThreatStore";
 const GENERATION_DELAY_MIN_MS = 500;
 const GENERATION_DELAY_MAX_MS = 2000;
 const EXPIRATION_CHECK_INTERVAL_MS = 500;
+const BATCH_FLUSH_INTERVAL_MS = 75; // Batch threats every 75ms for smoother updates
 const SIM_SPEED_MULTIPLIER =
   process.env.NEXT_PUBLIC_SIM_SPEED === "fast" ? 0.1 : 1;
 function getRandomDelay(): number {
@@ -45,7 +46,7 @@ function generateThreatEvent(): ThreatEvent {
 }
 export function useThreatSimulation() {
   const isLive = useThreatStore((state) => state.isLive);
-  const addThreat = useThreatStore((state) => state.addThreat);
+  const addThreats = useThreatStore((state) => state.addThreats);
   const pruneExpired = useThreatStore((state) => state.pruneExpired);
   const generationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -53,6 +54,42 @@ export function useThreatSimulation() {
   const expirationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null
   );
+  const batchIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null
+  );
+  const threatBufferRef = useRef<ThreatEvent[]>([]);
+
+  // Batch flush effect: periodically flush accumulated threats
+  useEffect(() => {
+    if (!isLive) {
+      // Flush any remaining threats when stopping
+      if (threatBufferRef.current.length > 0) {
+        addThreats(threatBufferRef.current);
+        threatBufferRef.current = [];
+      }
+      if (batchIntervalRef.current) {
+        clearInterval(batchIntervalRef.current);
+        batchIntervalRef.current = null;
+      }
+      return;
+    }
+
+    batchIntervalRef.current = setInterval(() => {
+      if (threatBufferRef.current.length > 0) {
+        addThreats(threatBufferRef.current);
+        threatBufferRef.current = [];
+      }
+    }, BATCH_FLUSH_INTERVAL_MS);
+
+    return () => {
+      if (batchIntervalRef.current) {
+        clearInterval(batchIntervalRef.current);
+        batchIntervalRef.current = null;
+      }
+    };
+  }, [isLive, addThreats]);
+
+  // Threat generation effect: generate threats and add to buffer
   useEffect(() => {
     if (!isLive) {
       if (generationTimeoutRef.current) {
@@ -65,7 +102,7 @@ export function useThreatSimulation() {
       const delay = getRandomDelay();
       generationTimeoutRef.current = setTimeout(() => {
         const threat = generateThreatEvent();
-        addThreat(threat);
+        threatBufferRef.current.push(threat);
         scheduleNext();
       }, delay);
     };
@@ -76,7 +113,7 @@ export function useThreatSimulation() {
         generationTimeoutRef.current = null;
       }
     };
-  }, [isLive, addThreat]);
+  }, [isLive]);
   useEffect(() => {
     if (!isLive) {
       if (expirationIntervalRef.current) {

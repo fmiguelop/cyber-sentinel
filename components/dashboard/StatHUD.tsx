@@ -10,9 +10,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useThreatStore } from "@/stores/useThreatStore";
-import { matchesFilters } from "@/lib/threats/filters";
-import { computeThreatStats } from "@/lib/threats/stats";
+import {
+  useThreatStore,
+  selectFilteredLogs,
+  selectFilteredThreats,
+  selectStatsFiltered,
+} from "@/stores/useThreatStore";
 function getDefconLevel(activeCritical: number): number {
   if (activeCritical === 0) return 5;
   if (activeCritical <= 2) return 4;
@@ -257,14 +260,11 @@ function TrendArrow({ now, global }: { now: number; global: number }) {
 export function StatHUD() {
   const statsGlobal = useThreatStore((state) => state.statsGlobal);
   const activeThreats = useThreatStore((state) => state.activeThreats);
-  const logs = useThreatStore((state) => state.logs);
   const filters = useThreatStore((state) => state.filters);
   const defconLevel = getDefconLevel(statsGlobal.activeCritical);
-  const filteredLogs = logs.filter((threat) => matchesFilters(threat, filters));
-  const filteredThreats = activeThreats.filter((threat) =>
-    matchesFilters(threat, filters)
-  );
-  const statsFiltered = computeThreatStats(filteredLogs);
+  const filteredLogs = useThreatStore(selectFilteredLogs);
+  const filteredThreats = useThreatStore(selectFilteredThreats);
+  const statsFiltered = useThreatStore(selectStatsFiltered);
   const nowIsEmpty =
     filteredThreats.length === 0 && statsFiltered.totalAttacks === 0;
   const enabledSeverities = Object.entries(filters.severity).filter(

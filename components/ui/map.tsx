@@ -1035,7 +1035,7 @@ function MapClusterLayer<
     clusterColors,
     clusterThresholds,
     pointColor,
-    data,
+    // Note: data is intentionally excluded from this effect to avoid recreating layers on every update
   ]);
   useEffect(() => {
     if (!isLoaded || !map || typeof data === "string") return;

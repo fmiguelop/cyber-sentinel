@@ -6,50 +6,79 @@ import { useEffect, useRef } from "react";
 import { useThreatStore } from "@/stores/useThreatStore";
 import type { ThreatEvent } from "@/lib/types/threats";
 
-/**
- * Generates a simple alert beep using Web Audio API
- */
-function playAlertBeep() {
+// Singleton AudioContext for reuse
+let audioContext: AudioContext | null = null;
+
+function getAudioContext(): AudioContext | null {
+  if (audioContext) {
+    return audioContext;
+  }
   try {
-    const audioContext = new (
+    audioContext = new (
       window.AudioContext || (window as any).webkitAudioContext
     )();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    // Configure beep: 800Hz, 0.1s duration, subtle volume
-    oscillator.frequency.value = 800;
-    oscillator.type = "sine";
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(
-      0.01,
-      audioContext.currentTime + 0.1
-    );
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
+    return audioContext;
   } catch (error) {
-    // Fallback: silently fail if audio context is not available
     console.debug("Audio context not available:", error);
+    return null;
   }
 }
 
 /**
+ * Generates a simple alert beep using Web Audio API
+ * Reuses singleton AudioContext for performance
+ */
+function playAlertBeep(ctx: AudioContext) {
+  try {
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    // Configure beep: 800Hz, 0.1s duration, subtle volume
+    oscillator.frequency.value = 800;
+    oscillator.type = "sine";
+    gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.01,
+      ctx.currentTime + 0.1
+    );
+
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.1);
+  } catch (error) {
+    // Fallback: silently fail if audio context is not available
+    console.debug("Error playing alert beep:", error);
+  }
+}
+
+// Rate limiting: max 1 beep per 300ms, with burst mode for multiple threats
+const RATE_LIMIT_MS = 300;
+let lastBeepTime = 0;
+let pendingThreats = 0;
+
+/**
  * Hook that monitors logs for new critical threats and plays sound alerts
+ * Uses rate limiting to prevent audio spam at high event rates
  */
 export function useCriticalAlertSound() {
   const logs = useThreatStore((state) => state.logs);
   const soundEnabled = useThreatStore((state) => state.soundEnabled);
   const previousLogsLengthRef = useRef(0);
   const previousCriticalIdsRef = useRef<Set<string>>(new Set());
+  const rateLimitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   useEffect(() => {
     // Only check for new critical threats if sound is enabled
     if (!soundEnabled) {
       previousLogsLengthRef.current = logs.length;
+      if (rateLimitTimeoutRef.current) {
+        clearTimeout(rateLimitTimeoutRef.current);
+        rateLimitTimeoutRef.current = null;
+      }
       return;
     }
 
@@ -64,11 +93,39 @@ export function useCriticalAlertSound() {
             !previousCriticalIdsRef.current.has(threat.id)
         );
 
-      // Play sound for each new critical threat
+      // Track new threats and mark as seen
       newCriticalThreats.forEach((threat: ThreatEvent) => {
-        playAlertBeep();
         previousCriticalIdsRef.current.add(threat.id);
+        pendingThreats++;
       });
+
+      // Rate-limited beep: play immediately if enough time has passed, otherwise schedule
+      const ctx = getAudioContext();
+      if (ctx && newCriticalThreats.length > 0) {
+        const now = Date.now();
+        const timeSinceLastBeep = now - lastBeepTime;
+
+        if (timeSinceLastBeep >= RATE_LIMIT_MS) {
+          // Play immediately
+          playAlertBeep(ctx);
+          lastBeepTime = now;
+          pendingThreats = 0;
+        } else {
+          // Schedule a beep after rate limit expires
+          if (!rateLimitTimeoutRef.current) {
+            const delay = RATE_LIMIT_MS - timeSinceLastBeep;
+            rateLimitTimeoutRef.current = setTimeout(() => {
+              if (pendingThreats > 0 && ctx) {
+                // Play a single beep for multiple pending threats (burst mode)
+                playAlertBeep(ctx);
+                lastBeepTime = Date.now();
+                pendingThreats = 0;
+              }
+              rateLimitTimeoutRef.current = null;
+            }, delay);
+          }
+        }
+      }
     }
 
     // Update refs
@@ -81,5 +138,12 @@ export function useCriticalAlertSound() {
       );
       previousCriticalIdsRef.current = recentIds;
     }
+
+    return () => {
+      if (rateLimitTimeoutRef.current) {
+        clearTimeout(rateLimitTimeoutRef.current);
+        rateLimitTimeoutRef.current = null;
+      }
+    };
   }, [logs, soundEnabled]);
 }

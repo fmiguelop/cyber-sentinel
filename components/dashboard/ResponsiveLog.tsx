@@ -5,9 +5,8 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useThreatStore } from "@/stores/useThreatStore";
+import { useThreatStore, selectFilteredLogs } from "@/stores/useThreatStore";
 import { severityToColorToken } from "@/lib/threats/random";
-import { matchesFilters } from "@/lib/threats/filters";
 import { ChevronUp, ChevronDown } from "lucide-react";
 type LogPanelSize = "min" | "normal" | "max";
 const MOBILE_HEIGHTS = {
@@ -22,9 +21,7 @@ const SIZE_ENTRY_LIMITS = {
 } as const;
 const STORAGE_KEY = "cybersentinel-log-panel-size";
 export function ResponsiveLog() {
-  const logs = useThreatStore((state) => state.logs);
-  const filters = useThreatStore((state) => state.filters);
-  const filteredLogs = logs.filter((threat) => matchesFilters(threat, filters));
+  const filteredLogs = useThreatStore(selectFilteredLogs);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const [isMobile, setIsMobile] = useState(false);

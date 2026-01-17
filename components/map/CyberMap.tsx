@@ -1,59 +1,186 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import { format } from "date-fns";
+import MapLibreGL from "maplibre-gl";
 import {
   Map,
   MapLineLayer,
-  MapMarker,
-  MarkerContent,
-  MarkerTooltip,
+  useMap,
 } from "@/components/ui/map";
-import { useThreatStore } from "@/stores/useThreatStore";
-import { severityToColorToken } from "@/lib/threats/random";
-import { matchesFilters } from "@/lib/threats/filters";
+import { useThreatStore, selectFilteredThreats } from "@/stores/useThreatStore";
+import { threatsToPointFeatureCollection } from "@/lib/threats/geojson";
 import type { ThreatEvent } from "@/lib/types/threats";
+import type { ThreatPointFeatureProperties } from "@/lib/threats/geojson";
 import { Button } from "../ui/button";
 import { Globe, MapIcon } from "lucide-react";
-function useReducedMotion(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-function ThreatMarkerDot({ severity }: { severity: ThreatEvent["severity"] }) {
-  const color = severityToColorToken(severity);
-  const prefersReducedMotion = useReducedMotion();
-  return (
-    <div className="relative">
-      {!prefersReducedMotion && (
-        <div
-          className="absolute inset-0 rounded-full animate-ping opacity-75"
-          style={{ backgroundColor: color }}
-        />
-      )}
 
-      <div
-        className={`relative h-3 w-3 rounded-full border-2 border-background shadow-lg ${
-          severity === "critical"
-            ? "glow-critical"
-            : severity === "medium"
-              ? "glow-medium"
-              : "glow-low"
-        }`}
-        style={{ backgroundColor: color }}
-      />
-    </div>
+function ThreatPointLayer({
+  threats,
+  onPointClick,
+}: {
+  threats: ThreatEvent[];
+  onPointClick?: (threat: ThreatEvent, pointType: "source" | "target") => void;
+}) {
+  const { map, isLoaded } = useMap();
+  const pointFeatures = useMemo(
+    () => threatsToPointFeatureCollection(threats),
+    [threats]
   );
+  const sourceId = "threat-points";
+  const layerId = "threat-points-layer";
+  const onPointClickRef = useRef(onPointClick);
+  const threatsMapRef = useRef<globalThis.Map<string, ThreatEvent>>(new globalThis.Map());
+  const popupRef = useRef<MapLibreGL.Popup | null>(null);
+
+  // Update threats map for quick lookup
+  useEffect(() => {
+    const threatsLookup = new globalThis.Map<string, ThreatEvent>();
+    threats.forEach((threat) => {
+      threatsLookup.set(`${threat.id}-source`, threat);
+      threatsLookup.set(`${threat.id}-target`, threat);
+    });
+    threatsMapRef.current = threatsLookup;
+  }, [threats]);
+
+  useEffect(() => {
+    onPointClickRef.current = onPointClick;
+  }, [onPointClick]);
+
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+
+    // Add source if it doesn't exist
+    if (!map.getSource(sourceId)) {
+      map.addSource(sourceId, {
+        type: "geojson",
+        data: pointFeatures,
+      });
+    } else {
+      const source = map.getSource(sourceId) as MapLibreGL.GeoJSONSource;
+      if (source) {
+        source.setData(pointFeatures);
+      }
+    }
+
+    // Add layer if it doesn't exist
+    if (!map.getLayer(layerId)) {
+      map.addLayer({
+        id: layerId,
+        type: "circle",
+        source: sourceId,
+        paint: {
+          "circle-color": [
+            "case",
+            ["==", ["get", "severity"], "critical"],
+            "#ef4444",
+            ["==", ["get", "severity"], "medium"],
+            "#eab308",
+            "#22c55e",
+          ],
+          "circle-radius": 6,
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#09090b",
+        },
+      });
+    }
+
+    // Show popup on hover
+    const handleMouseEnter = (e: MapLibreGL.MapMouseEvent) => {
+      // Change cursor
+      map.getCanvas().style.cursor = "pointer";
+
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: [layerId],
+      });
+
+      if (!features || features.length === 0) return;
+
+      const feature = features[0];
+      const props = feature.properties as ThreatPointFeatureProperties;
+      const threat = threatsMapRef.current.get(props.id);
+      if (!threat) return;
+
+      const point =
+        props.pointType === "source" ? threat.source : threat.target;
+
+      // Remove existing popup
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+
+      // Create popup content
+      const popupContent = document.createElement("div");
+      popupContent.className =
+        "space-y-1 text-xs p-2 bg-popover text-popover-foreground rounded-md border shadow-md";
+      popupContent.innerHTML = `
+        <div class="font-semibold">${threat.type}</div>
+        <div class="text-muted-foreground">
+          Severity: <span class="font-mono">${threat.severity}</span>
+        </div>
+        <div class="text-muted-foreground">
+          From: ${threat.source.name}, ${threat.source.country}
+        </div>
+        <div class="text-muted-foreground">
+          To: ${threat.target.name}, ${threat.target.country}
+        </div>
+        <div class="text-muted-foreground">
+          ${format(new Date(threat.timestamp), "HH:mm:ss")}
+        </div>
+        <div class="text-muted-foreground font-mono text-[10px]">
+          IP: ${threat.metadata.ipAddress}
+        </div>
+      `;
+
+      // Create and show popup
+      const popup = new MapLibreGL.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        closeOnMove: false,
+        anchor: "bottom",
+        offset: 16,
+      })
+        .setLngLat([point.lng, point.lat])
+        .setDOMContent(popupContent)
+        .addTo(map);
+
+      popupRef.current = popup;
+    };
+
+    // Hide popup when mouse leaves
+    const handleMouseLeave = () => {
+      map.getCanvas().style.cursor = "";
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+    };
+
+    map.on("mouseenter", layerId, handleMouseEnter);
+    map.on("mouseleave", layerId, handleMouseLeave);
+
+    return () => {
+      map.off("mouseenter", layerId, handleMouseEnter);
+      map.off("mouseleave", layerId, handleMouseLeave);
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+    };
+  }, [isLoaded, map, pointFeatures, layerId, sourceId]);
+
+  return null;
 }
+
 export function CyberMap() {
   const [mapType, setMapType] = useState<"globe" | "flat">("globe");
   const mapFeatures = useThreatStore((state) => state.mapFeatures);
-  const activeThreats = useThreatStore((state) => state.activeThreats);
-  const filters = useThreatStore((state) => state.filters);
-  const filteredThreats = activeThreats.filter((threat) =>
-    matchesFilters(threat, filters)
-  );
+  const filteredThreats = useThreatStore(selectFilteredThreats);
+
   const handleMapTypeChange = () => {
     setMapType((prev) => (prev === "globe" ? "flat" : "globe"));
   };
+
   return (
     <div
       role="region"
@@ -83,66 +210,9 @@ export function CyberMap() {
           <MapLineLayer data={mapFeatures} width={2} opacity={0.7} />
         )}
 
-        {filteredThreats.flatMap((threat) => [
-          <MapMarker
-            key={`${threat.id}-source`}
-            longitude={threat.source.lng}
-            latitude={threat.source.lat}
-          >
-            <MarkerContent>
-              <ThreatMarkerDot severity={threat.severity} />
-            </MarkerContent>
-            <MarkerTooltip>
-              <div className="space-y-1 text-xs">
-                <div className="font-semibold">{threat.type}</div>
-                <div className="text-muted-foreground">
-                  Severity: <span className="font-mono">{threat.severity}</span>
-                </div>
-                <div className="text-muted-foreground">
-                  From: {threat.source.name}, {threat.source.country}
-                </div>
-                <div className="text-muted-foreground">
-                  To: {threat.target.name}, {threat.target.country}
-                </div>
-                <div className="text-muted-foreground">
-                  {format(new Date(threat.timestamp), "HH:mm:ss")}
-                </div>
-                <div className="text-muted-foreground font-mono text-[10px]">
-                  IP: {threat.metadata.ipAddress}
-                </div>
-              </div>
-            </MarkerTooltip>
-          </MapMarker>,
-          <MapMarker
-            key={`${threat.id}-target`}
-            longitude={threat.target.lng}
-            latitude={threat.target.lat}
-          >
-            <MarkerContent>
-              <ThreatMarkerDot severity={threat.severity} />
-            </MarkerContent>
-            <MarkerTooltip>
-              <div className="space-y-1 text-xs">
-                <div className="font-semibold">{threat.type}</div>
-                <div className="text-muted-foreground">
-                  Severity: <span className="font-mono">{threat.severity}</span>
-                </div>
-                <div className="text-muted-foreground">
-                  From: {threat.source.name}, {threat.source.country}
-                </div>
-                <div className="text-muted-foreground">
-                  To: {threat.target.name}, {threat.target.country}
-                </div>
-                <div className="text-muted-foreground">
-                  {format(new Date(threat.timestamp), "HH:mm:ss")}
-                </div>
-                <div className="text-muted-foreground font-mono text-[10px]">
-                  IP: {threat.metadata.ipAddress}
-                </div>
-              </div>
-            </MarkerTooltip>
-          </MapMarker>,
-        ])}
+        {filteredThreats.length > 0 && (
+          <ThreatPointLayer threats={filteredThreats} />
+        )}
       </Map>
     </div>
   );

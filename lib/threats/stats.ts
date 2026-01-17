@@ -24,6 +24,9 @@ export function computeThreatStats(threats: ThreatEvent[]): ThreatStats {
     OC: 0,
     AF: 0,
   };
+  const now = Date.now();
+  let activeCritical = 0;
+
   threats.forEach((threat) => {
     bySeverity[threat.severity]++;
     byRegion[threat.source.region]++;
@@ -31,6 +34,13 @@ export function computeThreatStats(threats: ThreatEvent[]): ThreatStats {
       (sourceCountryCounts[threat.source.country] || 0) + 1;
     sourceRegionCounts[threat.source.region] =
       (sourceRegionCounts[threat.source.region] || 0) + 1;
+
+    if (
+      threat.severity === "critical" &&
+      threat.timestamp + threat.duration > now
+    ) {
+      activeCritical++;
+    }
   });
   const topSourceCountry =
     Object.keys(sourceCountryCounts).length > 0
@@ -45,11 +55,6 @@ export function computeThreatStats(threats: ThreatEvent[]): ThreatStats {
           a[1] > b[1] ? a : b
         )[0] as City["region"])
       : null;
-  const now = Date.now();
-  const activeCritical = threats.filter(
-    (threat) =>
-      threat.severity === "critical" && threat.timestamp + threat.duration > now
-  ).length;
   return {
     totalAttacks,
     activeCritical,
