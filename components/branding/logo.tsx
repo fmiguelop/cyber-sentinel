@@ -4,10 +4,10 @@ import Link from "next/link";
 
 export function Logo() {
   return (
-    <div className="hidden md:flex justify-end items-start">
+    <div className="hidden lg:flex justify-end items-start">
       <Link
         href="/"
-        aria-label="CyberSentinel - Return to homepage"
+        aria-label="CyberSentinel"
         title="CyberSentinel - Real-Time Threat Intelligence Dashboard"
         className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
       >

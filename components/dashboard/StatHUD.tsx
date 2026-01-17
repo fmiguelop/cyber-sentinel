@@ -64,7 +64,7 @@ function getDefconColor(level: number): string {
 /**
  * DEFCON Status Indicator Component
  */
-function DefconIndicator({ level, size = "sm" }: { level: number; size?: "sm" | "xs" }) {
+export function DefconIndicator({ level, size = "sm" }: { level: number; size?: "sm" | "xs" }) {
   const colorClass = getDefconColor(level);
   const sizeClass = size === "sm" ? "h-3 w-3" : "h-2 w-2";
   
@@ -75,6 +75,138 @@ function DefconIndicator({ level, size = "sm" }: { level: number; size?: "sm" | 
       }`}
       aria-hidden="true"
     />
+  );
+}
+
+/**
+ * Exported helper functions for DEFCON calculations
+ */
+export { getDefconLevel, getDefconSubtitle, getDefconColor };
+
+/**
+ * Shared DEFCON Header Content - reusable header section
+ */
+function DefconHeaderContent({ disableTooltip = false }: { disableTooltip?: boolean }) {
+  const statsGlobal = useThreatStore((state) => state.statsGlobal);
+  
+  // Compute DEFCON level
+  const defconLevel = getDefconLevel(statsGlobal.activeCritical);
+  const defconSubtitle = getDefconSubtitle(defconLevel);
+  
+  // First-time tooltip hint state
+  const [showPulse, setShowPulse] = useState(false);
+  
+  // Check localStorage on mount
+  useEffect(() => {
+    const hasSeenTooltip = localStorage.getItem("defcon-tooltip-seen");
+    if (!hasSeenTooltip) {
+      setShowPulse(true);
+    }
+  }, []);
+  
+  // Handle tooltip open to mark as seen
+  const handleTooltipOpenChange = (open: boolean) => {
+    if (open && showPulse) {
+      localStorage.setItem("defcon-tooltip-seen", "true");
+      setShowPulse(false);
+    }
+  };
+
+  const tooltipContent = (
+    <TooltipContent side="right" className="max-w-sm">
+      <div className="space-y-3">
+        <div>
+          <div className="font-semibold text-sm">DEFCON (Defense Condition)</div>
+          <div className="text-xs text-gray-400 mt-1">Military alert readiness scale</div>
+        </div>
+        <div className="space-y-1 font-mono text-xs">
+          <div className={`flex items-center gap-2 ${defconLevel === 5 ? "text-white font-bold" : "text-gray-400"}`}>
+            <DefconIndicator level={5} size="xs" />
+            <span>5 - Normal (0 critical){defconLevel === 5 && " ← YOU ARE HERE"}</span>
+          </div>
+          <div className={`flex items-center gap-2 ${defconLevel === 4 ? "text-white font-bold" : "text-gray-400"}`}>
+            <DefconIndicator level={4} size="xs" />
+            <span>4 - Low (1-2 critical){defconLevel === 4 && " ← YOU ARE HERE"}</span>
+          </div>
+          <div className={`flex items-center gap-2 ${defconLevel === 3 ? "text-white font-bold" : "text-gray-400"}`}>
+            <DefconIndicator level={3} size="xs" />
+            <span>3 - Moderate (3-5 critical){defconLevel === 3 && " ← YOU ARE HERE"}</span>
+          </div>
+          <div className={`flex items-center gap-2 ${defconLevel === 2 ? "text-white font-bold" : "text-gray-400"}`}>
+            <DefconIndicator level={2} size="xs" />
+            <span>2 - Elevated (6-10 critical){defconLevel === 2 && " ← YOU ARE HERE"}</span>
+          </div>
+          <div className={`flex items-center gap-2 ${defconLevel === 1 ? "text-white font-bold" : "text-gray-400"}`}>
+            <DefconIndicator level={1} size="xs" />
+            <span>1 - Maximum (10+ critical){defconLevel === 1 && " ← YOU ARE HERE"}</span>
+          </div>
+        </div>
+        <div className="border-t border-gray-700 pt-3">
+          <div className="text-xs text-gray-400">
+            Based on active critical threats in the system
+          </div>
+        </div>
+      </div>
+    </TooltipContent>
+  );
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <div className="border-b border-border px-6 py-3 group">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-help">
+            <DefconIndicator level={defconLevel} size="sm" />
+            <span className="text-sm font-semibold text-foreground">
+              DEFCON {defconLevel}
+            </span>
+          </div>
+          {disableTooltip ? (
+            <button
+              type="button"
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm cursor-default opacity-50"
+              aria-label="DEFCON levels info (tooltip disabled on mobile)"
+              disabled
+            >
+              <Info
+                className={`h-4 w-4 text-gray-400 ${
+                  showPulse ? "animate-pulse" : ""
+                }`}
+              />
+            </button>
+          ) : (
+            <Tooltip onOpenChange={handleTooltipOpenChange}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm cursor-pointer"
+                  aria-label="Learn about DEFCON levels"
+                >
+                  <Info
+                    className={`h-4 w-4 text-gray-400 transition-colors hover:text-gray-200 ${
+                      showPulse ? "animate-pulse" : ""
+                    }`}
+                  />
+                </button>
+              </TooltipTrigger>
+              {tooltipContent}
+            </Tooltip>
+          )}
+        </div>
+        <div className="text-xs text-muted-foreground mt-1">{defconSubtitle}</div>
+      </div>
+    </TooltipProvider>
+  );
+}
+
+/**
+ * DEFCON Card Component - displays DEFCON level indicator with tooltip
+ * Extracted for reuse in mobile drawer
+ */
+export function DefconCard({ disableTooltip = false }: { disableTooltip?: boolean }) {
+  return (
+    <Card className="border-border bg-card shadow-lg" role="region" aria-label="DEFCON Status">
+      <DefconHeaderContent disableTooltip={disableTooltip} />
+    </Card>
   );
 }
 
@@ -140,28 +272,8 @@ export function StatHUD() {
   const logs = useThreatStore((state) => state.logs);
   const filters = useThreatStore((state) => state.filters);
   
-  // Compute DEFCON level
+  // Compute DEFCON level for stats table
   const defconLevel = getDefconLevel(statsGlobal.activeCritical);
-  const defconSubtitle = getDefconSubtitle(defconLevel);
-  
-  // First-time tooltip hint state
-  const [showPulse, setShowPulse] = useState(false);
-  
-  // Check localStorage on mount
-  useEffect(() => {
-    const hasSeenTooltip = localStorage.getItem("defcon-tooltip-seen");
-    if (!hasSeenTooltip) {
-      setShowPulse(true);
-    }
-  }, []);
-  
-  // Handle tooltip open to mark as seen
-  const handleTooltipOpenChange = (open: boolean) => {
-    if (open && showPulse) {
-      localStorage.setItem("defcon-tooltip-seen", "true");
-      setShowPulse(false);
-    }
-  };
   
   // Compute filtered stats
   const filteredLogs = logs.filter((threat) => matchesFilters(threat, filters));
@@ -200,69 +312,7 @@ export function StatHUD() {
 
   return (
     <Card className="border-border bg-card shadow-lg" role="region" aria-label="Threat Statistics">
-      <TooltipProvider delayDuration={300}>
-        <div className="border-b border-border px-6 py-3 group">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 cursor-help">
-              <DefconIndicator level={defconLevel} size="sm" />
-              <span className="text-sm font-semibold text-foreground">
-                DEFCON {defconLevel}
-              </span>
-            </div>
-            <Tooltip onOpenChange={handleTooltipOpenChange}>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm cursor-pointer"
-                  aria-label="Learn about DEFCON levels"
-                >
-                  <Info
-                    className={`h-4 w-4 text-gray-400 transition-colors hover:text-gray-200 ${
-                      showPulse ? "animate-pulse" : ""
-                    }`}
-                  />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="max-w-sm">
-                <div className="space-y-3">
-                  <div>
-                    <div className="font-semibold text-sm">DEFCON (Defense Condition)</div>
-                    <div className="text-xs text-gray-400 mt-1">Military alert readiness scale</div>
-                  </div>
-                  <div className="space-y-1 font-mono text-xs">
-                    <div className={`flex items-center gap-2 ${defconLevel === 5 ? "text-white font-bold" : "text-gray-400"}`}>
-                      <DefconIndicator level={5} size="xs" />
-                      <span>5 - Normal (0 critical){defconLevel === 5 && " ← YOU ARE HERE"}</span>
-                    </div>
-                    <div className={`flex items-center gap-2 ${defconLevel === 4 ? "text-white font-bold" : "text-gray-400"}`}>
-                      <DefconIndicator level={4} size="xs" />
-                      <span>4 - Low (1-2 critical){defconLevel === 4 && " ← YOU ARE HERE"}</span>
-                    </div>
-                    <div className={`flex items-center gap-2 ${defconLevel === 3 ? "text-white font-bold" : "text-gray-400"}`}>
-                      <DefconIndicator level={3} size="xs" />
-                      <span>3 - Moderate (3-5 critical){defconLevel === 3 && " ← YOU ARE HERE"}</span>
-                    </div>
-                    <div className={`flex items-center gap-2 ${defconLevel === 2 ? "text-white font-bold" : "text-gray-400"}`}>
-                      <DefconIndicator level={2} size="xs" />
-                      <span>2 - Elevated (6-10 critical){defconLevel === 2 && " ← YOU ARE HERE"}</span>
-                    </div>
-                    <div className={`flex items-center gap-2 ${defconLevel === 1 ? "text-white font-bold" : "text-gray-400"}`}>
-                      <DefconIndicator level={1} size="xs" />
-                      <span>1 - Maximum (10+ critical){defconLevel === 1 && " ← YOU ARE HERE"}</span>
-                    </div>
-                  </div>
-                  <div className="border-t border-gray-700 pt-3">
-                    <div className="text-xs text-gray-400">
-                      Based on active critical threats in the system
-                    </div>
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">{defconSubtitle}</div>
-        </div>
-      </TooltipProvider>
+      <DefconHeaderContent />
       <CardContent className="space-y-3">
         {/* Comparison Table */}
         <div
