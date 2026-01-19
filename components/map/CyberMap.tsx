@@ -7,20 +7,58 @@ import { useThreatStore, selectFilteredThreats } from "@/stores/useThreatStore";
 import { threatsToPointFeatureCollection } from "@/lib/threats/geojson";
 import type { ThreatEvent } from "@/lib/types/threats";
 import type { ThreatPointFeatureProperties } from "@/lib/threats/geojson";
+import { WorldBordersLayer } from "./WorldBorderLayer";
 
-function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
+const loadMapIcons = (map: MapLibreGL.Map) => {
+  const icons = [
+    {
+      id: "icon-source",
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v4h4v2h-4v4h-2v-4H7v-2h4V7z"/></svg>`,
+    },
+    {
+      id: "icon-target",
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+    },
+  ];
+
+  icons.forEach(({ id, svg }) => {
+    // Check 1: Do we already have it?
+    if (map.hasImage(id)) return;
+
+    const img = new Image(24, 24);
+
+    // Check 2: Check again INSIDE onload to prevent race conditions
+    img.onload = () => {
+      if (!map.hasImage(id)) {
+        map.addImage(id, img, { sdf: true });
+      }
+    };
+
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  });
+};
+
+export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
   const { map, isLoaded } = useMap();
   const pointFeatures = useMemo(
     () => threatsToPointFeatureCollection(threats),
     [threats]
   );
+
+  // Layer Constants
   const sourceId = "threat-points";
-  const layerId = "threat-points-layer";
+  const circleLayerId = "threat-points-circle";
+  const iconLayerId = "threat-points-icon";
+  const glowLayerId = "threat-points-glow";
+
+  // Refs
   const threatsMapRef = useRef<globalThis.Map<string, ThreatEvent>>(
     new globalThis.Map()
   );
   const popupRef = useRef<MapLibreGL.Popup | null>(null);
+  const animationRef = useRef<number>(null);
 
+  // 1. Maintain Lookup Map for Popups
   useEffect(() => {
     const threatsLookup = new globalThis.Map<string, ThreatEvent>();
     threats.forEach((threat) => {
@@ -30,26 +68,48 @@ function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
     threatsMapRef.current = threatsLookup;
   }, [threats]);
 
+  // 2. Render Layers & Animation
   useEffect(() => {
     if (!isLoaded || !map) return;
 
+    loadMapIcons(map);
+
+    // Add Source
     if (!map.getSource(sourceId)) {
-      map.addSource(sourceId, {
-        type: "geojson",
-        data: pointFeatures,
-      });
+      map.addSource(sourceId, { type: "geojson", data: pointFeatures });
     } else {
-      const source = map.getSource(sourceId) as MapLibreGL.GeoJSONSource;
-      source.setData(pointFeatures);
+      (map.getSource(sourceId) as MapLibreGL.GeoJSONSource).setData(
+        pointFeatures
+      );
     }
 
-    if (!map.getLayer(layerId)) {
+    // Add Glow (Animated Pulse)
+    if (!map.getLayer(glowLayerId)) {
       map.addLayer({
-        id: layerId,
+        id: glowLayerId,
         type: "circle",
         source: sourceId,
         paint: {
-          "circle-color": [
+          "circle-color": "#ef4444",
+          "circle-radius": 15,
+          "circle-opacity": 0,
+          "circle-blur": 1,
+        },
+        filter: ["==", ["get", "severity"], "critical"],
+      });
+    }
+
+    // Add Circle Background
+    if (!map.getLayer(circleLayerId)) {
+      map.addLayer({
+        id: circleLayerId,
+        type: "circle",
+        source: sourceId,
+        paint: {
+          "circle-radius": 10,
+          "circle-color": "#09090b",
+          "circle-stroke-width": 2,
+          "circle-stroke-color": [
             "case",
             ["==", ["get", "severity"], "critical"],
             "#ef4444",
@@ -57,25 +117,88 @@ function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
             "#eab308",
             "#22c55e",
           ],
-          "circle-radius": 6,
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#09090b",
         },
       });
     }
 
-    const handleMouseEnter = (e: MapLibreGL.MapMouseEvent) => {
-      map.getCanvas().style.cursor = "pointer";
+    // Add Icons
+    if (!map.getLayer(iconLayerId)) {
+      map.addLayer({
+        id: iconLayerId,
+        type: "symbol",
+        source: sourceId,
+        layout: {
+          "icon-image": [
+            "case",
+            ["==", ["get", "pointType"], "source"],
+            "icon-source",
+            "icon-target",
+          ],
+          "icon-size": 0.6,
+          "icon-allow-overlap": true,
+        },
+        paint: {
+          "icon-color": [
+            "case",
+            ["==", ["get", "severity"], "critical"],
+            "#ef4444",
+            ["==", ["get", "severity"], "medium"],
+            "#eab308",
+            "#22c55e",
+          ],
+        },
+      });
+    }
 
+    // Pulse Animation Loop
+    const start = performance.now();
+    const animate = (time: number) => {
+      const duration = 2000;
+      const t = (time - start) % duration;
+      const progress = t / duration;
+
+      const radius = 5 + progress * 25;
+      const opacity = 0.8 - progress * 0.8;
+
+      if (map.getLayer(glowLayerId)) {
+        map.setPaintProperty(glowLayerId, "circle-radius", radius);
+        map.setPaintProperty(glowLayerId, "circle-opacity", opacity);
+      }
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [
+    isLoaded,
+    map,
+    pointFeatures,
+    sourceId,
+    glowLayerId,
+    circleLayerId,
+    iconLayerId,
+  ]);
+
+  // 3. Handle Popups (Updated to listen to new layers)
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+
+    const handleMouseEnter = (e: MapLibreGL.MapMouseEvent) => {
+      // Query both the Circle AND the Icon layer
       const features = map.queryRenderedFeatures(e.point, {
-        layers: [layerId],
+        layers: [circleLayerId, iconLayerId],
       });
 
       if (!features || features.length === 0) return;
 
+      map.getCanvas().style.cursor = "pointer";
+
       const feature = features[0];
       const props = feature.properties as ThreatPointFeatureProperties;
       const threat = threatsMapRef.current.get(props.id);
+
       if (!threat) return;
 
       const point =
@@ -83,7 +206,6 @@ function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
 
       if (popupRef.current) {
         popupRef.current.remove();
-        popupRef.current = null;
       }
 
       const severityColor =
@@ -96,41 +218,33 @@ function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
       const popupContent = document.createElement("div");
       popupContent.className =
         "w-72 p-2 bg-popover text-popover-foreground rounded-r-md rounded-l-sm border-y border-r shadow-md text-xs leading-tight";
-
       popupContent.style.border = `1px solid ${severityColor}`;
 
       popupContent.innerHTML = `
         <div class="flex justify-between items-center mb-1.5 border-b border-border/50 pb-1">
           <span class="font-semibold truncate pr-2">${threat.type}</span>
-          
-          <span 
-            style="color: ${severityColor};"
-            class="font-mono font-bold text-[10px] px-1.5 rounded bg-transparent"
-          >
+          <span style="color: ${severityColor};" class="font-mono font-bold text-[10px] px-1.5 rounded bg-transparent">
             ${threat.severity.toUpperCase()}
           </span>
         </div>
-
         <div class="flex items-center justify-between gap-1 mb-1.5 text-foreground">
           <div class="flex-1 min-w-0 text-right">
             <div class="truncate font-medium">${threat.source.name}</div>
             <div class="text-[10px] text-muted-foreground truncate">${threat.source.country}</div>
           </div>
-
           <div class="text-muted-foreground px-1">→</div>
-
           <div class="flex-1 min-w-0 text-left">
             <div class="truncate font-medium">${threat.target.name}</div>
             <div class="text-[10px] text-muted-foreground truncate">${threat.target.country}</div>
           </div>
         </div>
-
         <div class="flex justify-between items-center text-[10px] text-muted-foreground font-mono bg-muted/30 -mx-2 -mb-2 px-2 py-1 mt-1">
           <span>${threat.metadata.ipAddress}</span>
           <span>${format(new Date(threat.timestamp), "HH:mm:ss")}</span>
         </div>
       `;
-      const popup = new MapLibreGL.Popup({
+
+      popupRef.current = new MapLibreGL.Popup({
         closeButton: false,
         closeOnClick: false,
         closeOnMove: false,
@@ -140,8 +254,6 @@ function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
         .setLngLat([point.lng, point.lat])
         .setDOMContent(popupContent)
         .addTo(map);
-
-      popupRef.current = popup;
     };
 
     const handleMouseLeave = () => {
@@ -152,18 +264,20 @@ function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
       }
     };
 
-    map.on("mouseenter", layerId, handleMouseEnter);
-    map.on("mouseleave", layerId, handleMouseLeave);
+    // Attach listeners to BOTH interactive layers
+    map.on("mouseenter", circleLayerId, handleMouseEnter);
+    map.on("mouseenter", iconLayerId, handleMouseEnter);
+    map.on("mouseleave", circleLayerId, handleMouseLeave);
+    map.on("mouseleave", iconLayerId, handleMouseLeave);
 
     return () => {
-      map.off("mouseenter", layerId, handleMouseEnter);
-      map.off("mouseleave", layerId, handleMouseLeave);
-      if (popupRef.current) {
-        popupRef.current.remove();
-        popupRef.current = null;
-      }
+      map.off("mouseenter", circleLayerId, handleMouseEnter);
+      map.off("mouseenter", iconLayerId, handleMouseEnter);
+      map.off("mouseleave", circleLayerId, handleMouseLeave);
+      map.off("mouseleave", iconLayerId, handleMouseLeave);
+      if (popupRef.current) popupRef.current.remove();
     };
-  }, [isLoaded, map, pointFeatures, layerId, sourceId]);
+  }, [isLoaded, map, circleLayerId, iconLayerId]); // Added dependencies
 
   return null;
 }
@@ -186,6 +300,7 @@ export function CyberMap() {
         center={[0, 20]}
         zoom={1.5}
       >
+        <WorldBordersLayer />
         {mapFeatures && mapFeatures.features.length > 0 && (
           <MapLineLayer data={mapFeatures} width={2} opacity={0.7} />
         )}

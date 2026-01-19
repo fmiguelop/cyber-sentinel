@@ -29,11 +29,13 @@ const DefconSection = dynamic(
   }
 );
 
-const ControlPanel = dynamic(() => import("../components/dashboard/ControlPanel"),
+const ControlPanel = dynamic(
+  () => import("../components/dashboard/ControlPanel"),
   {
     ssr: false,
     loading: () => <p>Loading...</p>, // Optional placeholder
-  })
+  }
+);
 
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   return (
