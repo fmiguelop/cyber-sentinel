@@ -5,13 +5,12 @@ import { Menu } from "lucide-react";
 import { useThreatSimulation } from "@/hooks/useThreatSimulation";
 import { useCriticalAlertSound } from "@/hooks/useCriticalAlertSound";
 import { CyberMap } from "@/components/map/CyberMap";
-import { StatHUD } from "@/components/dashboard/StatHUD";
 import { ControlPanel } from "@/components/dashboard/ControlPanel";
 import { ResponsiveLog } from "@/components/dashboard/ResponsiveLog";
 import { DefconCard } from "@/components/dashboard/StatHUD";
-import { ControlsCard, FiltersCard } from "@/components/dashboard/ControlPanel";
+import { ControlsCard } from "@/components/dashboard/ControlPanel";
+import { DefconSection } from "@/components/dashboard/DefconSection";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Sheet,
   SheetContent,
@@ -57,41 +56,37 @@ export default function Home() {
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
           side="right"
-          className="w-[85vw] sm:max-w-sm overflow-y-auto pt-6"
+          className="w-[85vw] sm:max-w-sm overflow-y-auto p-0 bg-zinc-950/50 backdrop-blur-md border-l border-zinc-800"
         >
-          <SheetHeader className="pb-4">
+          <SheetHeader className="px-6 pt-6 pb-4">
             <SheetTitle>Settings</SheetTitle>
           </SheetHeader>
-          <div className="space-y-4 pb-6">
+          <div className="px-6 pb-6">
             <DefconCard disableTooltip={true} />
-            <Card className="border-border bg-card shadow-lg">
-              <CardContent className="space-y-5 pt-6">
-                <ControlsCard />
-              </CardContent>
-            </Card>
-            <Card className="border-border bg-card shadow-lg">
-              <CardContent className="space-y-5 pt-6">
-                <FiltersCard />
-              </CardContent>
-            </Card>
+            <ControlsCard />
           </div>
         </SheetContent>
       </Sheet>
 
-      <div className="relative h-full w-full lg:grid lg:grid-cols-12 lg:grid-rows-12 lg:gap-4 lg:p-4">
-        <div className="absolute inset-0 z-0 pt-14 lg:pt-0 lg:relative lg:col-span-9 lg:row-span-10 rounded-lg border border-border bg-card overflow-hidden">
-          <CyberMap />
-        </div>
+      <div className="absolute inset-0 z-0">
+        <CyberMap />
+      </div>
 
-        <div className="hidden lg:flex lg:col-span-3 lg:row-span-12 flex-col gap-4">
+      <div className="hidden lg:block absolute left-6 top-6 z-10 w-[350px] max-h-[calc(100vh-3rem)] overflow-y-auto overflow-x-clip bg-zinc-950/80 backdrop-blur-md border border-zinc-800 isolate">
+        <div className="p-6">
+          <DefconSection />
+        </div>
+      </div>
+
+      <div className="hidden lg:block absolute right-6 top-6 z-10 w-[350px] max-h-[calc(100vh-3rem)] overflow-auto bg-zinc-950/80 backdrop-blur-md border border-zinc-800">
+        <div className="p-4">
           <Logo />
-          <StatHUD />
-          <ControlPanel />
         </div>
+        <ControlPanel />
+      </div>
 
-        <div className="hidden lg:block lg:col-span-9 lg:row-span-2">
-          <ResponsiveLog />
-        </div>
+      <div className="hidden lg:block absolute left-6 right-6 bottom-6 z-10">
+        <ResponsiveLog />
       </div>
 
       <div className="lg:hidden">

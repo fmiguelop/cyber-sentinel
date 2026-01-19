@@ -76,6 +76,13 @@ body {
   .maplibregl-popup-tip {
     @apply hidden!;
   }
+  .bg-grid {
+    background-size: 40px 40px;
+    background-image:
+      linear-gradient(to right, #27272a 1px, transparent 1px),
+      linear-gradient(to bottom, #27272a 1px, transparent 1px);
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+  }
 
   .sr-only {
     position: absolute;

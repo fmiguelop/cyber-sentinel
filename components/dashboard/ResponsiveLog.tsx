@@ -7,7 +7,16 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useThreatStore, selectFilteredLogs } from "@/stores/useThreatStore";
 import { severityToColorToken } from "@/lib/threats/random";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { ChevronUp, ChevronDown, Download, FileJson, FileSpreadsheet } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { logsToJson, logsToCsv, downloadTextFile } from "@/lib/threats/export";
 type LogPanelSize = "min" | "normal" | "max";
 const MOBILE_HEIGHTS = {
   min: "h-16",
@@ -22,9 +31,39 @@ const SIZE_ENTRY_LIMITS = {
 const STORAGE_KEY = "cybersentinel-log-panel-size";
 export function ResponsiveLog() {
   const filteredLogs = useThreatStore(selectFilteredLogs);
+  const logs = useThreatStore((state) => state.logs);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const [isMobile, setIsMobile] = useState(false);
+  
+  const handleExportFilteredJson = () => {
+    const content = logsToJson(filteredLogs);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    downloadTextFile(
+      `threats-filtered-${timestamp}.json`,
+      "application/json",
+      content
+    );
+  };
+  const handleExportFilteredCsv = () => {
+    const content = logsToCsv(filteredLogs);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    downloadTextFile(`threats-filtered-${timestamp}.csv`, "text/csv", content);
+  };
+  const handleExportFullJson = () => {
+    const content = logsToJson(logs);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    downloadTextFile(
+      `threats-full-${timestamp}.json`,
+      "application/json",
+      content
+    );
+  };
+  const handleExportFullCsv = () => {
+    const content = logsToCsv(logs);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    downloadTextFile(`threats-full-${timestamp}.csv`, "text/csv", content);
+  };
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
@@ -144,29 +183,96 @@ export function ResponsiveLog() {
               </span>
             </div>
 
-            {isMobile && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 text-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleMobileToggle();
-                }}
-                aria-label={
-                  panelSize === "min"
-                    ? "Expand log panel"
-                    : "Collapse log panel"
-                }
-                title={panelSize === "min" ? "Expand" : "Collapse"}
-              >
-                {panelSize === "min" ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 p-0 text-zinc-500 hover:text-emerald-500 focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    aria-label="Export logs"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72">
+                  <DropdownMenuLabel>Filtered View</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    disabled={filteredLogs.length === 0}
+                    onSelect={handleExportFilteredJson}
+                    aria-label={`Export ${filteredLogs.length} filtered threats as JSON`}
+                  >
+                    <FileJson className="h-4 w-4" />
+                    Download as JSON
+                    <span className="ml-auto text-xs text-gray-400">
+                      {filteredLogs.length}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={filteredLogs.length === 0}
+                    onSelect={handleExportFilteredCsv}
+                    aria-label={`Export ${filteredLogs.length} filtered threats as CSV`}
+                  >
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Download as CSV
+                    <span className="ml-auto text-xs text-gray-400">
+                      {filteredLogs.length}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Full Dataset</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    disabled={logs.length === 0}
+                    onSelect={handleExportFullJson}
+                    aria-label={`Export ${logs.length} total threats as JSON`}
+                  >
+                    <FileJson className="h-4 w-4" />
+                    Download as JSON
+                    <span className="ml-auto text-xs text-gray-400">
+                      {logs.length}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={logs.length === 0}
+                    onSelect={handleExportFullCsv}
+                    aria-label={`Export ${logs.length} total threats as CSV`}
+                  >
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Download as CSV
+                    <span className="ml-auto text-xs text-gray-400">
+                      {logs.length}
+                    </span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {isMobile && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMobileToggle();
+                  }}
+                  aria-label={
+                    panelSize === "min"
+                      ? "Expand log panel"
+                      : "Collapse log panel"
+                  }
+                  title={panelSize === "min" ? "Expand" : "Collapse"}
+                >
+                  {panelSize === "min" ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden p-0">

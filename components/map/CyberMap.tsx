@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import MapLibreGL from "maplibre-gl";
 import { Map, MapLineLayer, useMap } from "@/components/ui/map";
@@ -7,15 +7,11 @@ import { useThreatStore, selectFilteredThreats } from "@/stores/useThreatStore";
 import { threatsToPointFeatureCollection } from "@/lib/threats/geojson";
 import type { ThreatEvent } from "@/lib/types/threats";
 import type { ThreatPointFeatureProperties } from "@/lib/threats/geojson";
-import { Button } from "../ui/button";
-import { Globe, MapIcon } from "lucide-react";
 
 function ThreatPointLayer({
   threats,
-  onPointClick,
 }: {
   threats: ThreatEvent[];
-  onPointClick?: (threat: ThreatEvent, pointType: "source" | "target") => void;
 }) {
   const { map, isLoaded } = useMap();
   const pointFeatures = useMemo(
@@ -24,13 +20,11 @@ function ThreatPointLayer({
   );
   const sourceId = "threat-points";
   const layerId = "threat-points-layer";
-  const onPointClickRef = useRef(onPointClick);
   const threatsMapRef = useRef<globalThis.Map<string, ThreatEvent>>(
     new globalThis.Map()
   );
   const popupRef = useRef<MapLibreGL.Popup | null>(null);
 
-  // Update threats map for quick lookup
   useEffect(() => {
     const threatsLookup = new globalThis.Map<string, ThreatEvent>();
     threats.forEach((threat) => {
@@ -41,13 +35,8 @@ function ThreatPointLayer({
   }, [threats]);
 
   useEffect(() => {
-    onPointClickRef.current = onPointClick;
-  }, [onPointClick]);
-
-  useEffect(() => {
     if (!isLoaded || !map) return;
 
-    // Add source if it doesn't exist
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
         type: "geojson",
@@ -55,12 +44,9 @@ function ThreatPointLayer({
       });
     } else {
       const source = map.getSource(sourceId) as MapLibreGL.GeoJSONSource;
-      if (source) {
-        source.setData(pointFeatures);
-      }
+      source.setData(pointFeatures);
     }
 
-    // Add layer if it doesn't exist
     if (!map.getLayer(layerId)) {
       map.addLayer({
         id: layerId,
@@ -82,9 +68,7 @@ function ThreatPointLayer({
       });
     }
 
-    // Show popup on hover
     const handleMouseEnter = (e: MapLibreGL.MapMouseEvent) => {
-      // Change cursor
       map.getCanvas().style.cursor = "pointer";
 
       const features = map.queryRenderedFeatures(e.point, {
@@ -101,13 +85,11 @@ function ThreatPointLayer({
       const point =
         props.pointType === "source" ? threat.source : threat.target;
 
-      // Remove existing popup
       if (popupRef.current) {
         popupRef.current.remove();
         popupRef.current = null;
       }
 
-      // Create popup content
       const popupContent = document.createElement("div");
       popupContent.className =
         "space-y-1 text-xs p-2 bg-popover text-popover-foreground rounded-md border shadow-md";
@@ -130,7 +112,6 @@ function ThreatPointLayer({
         </div>
       `;
 
-      // Create and show popup
       const popup = new MapLibreGL.Popup({
         closeButton: false,
         closeOnClick: false,
@@ -145,7 +126,6 @@ function ThreatPointLayer({
       popupRef.current = popup;
     };
 
-    // Hide popup when mouse leaves
     const handleMouseLeave = () => {
       map.getCanvas().style.cursor = "";
       if (popupRef.current) {
@@ -171,13 +151,9 @@ function ThreatPointLayer({
 }
 
 export function CyberMap() {
-  const [mapType, setMapType] = useState<"globe" | "flat">("globe");
+  const mapType = useThreatStore((state) => state.mapType);
   const mapFeatures = useThreatStore((state) => state.mapFeatures);
   const filteredThreats = useThreatStore(selectFilteredThreats);
-
-  const handleMapTypeChange = () => {
-    setMapType((prev) => (prev === "globe" ? "flat" : "globe"));
-  };
 
   return (
     <div
@@ -185,19 +161,7 @@ export function CyberMap() {
       aria-label="Threat Visualization Map"
       className="h-full w-full relative"
     >
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleMapTypeChange}
-        className="absolute top-4 right-4 z-10"
-      >
-        {mapType === "flat" ? (
-          <Globe className="w-4 h-4" />
-        ) : (
-          <MapIcon className="w-4 h-4" />
-        )}
-        {mapType === "flat" ? "Globe View" : "Flat View"}
-      </Button>
+      <div className="bg-grid absolute inset-0" />
       <Map
         theme="dark"
         projection={{ type: mapType }}

@@ -6,9 +6,9 @@ import type {
 } from "@/lib/types/threats";
 import { threatsToLineFeatureCollection } from "@/lib/threats/geojson";
 import { computeThreatStats } from "@/lib/threats/stats";
-import { compileFilters, type CompiledFilter } from "@/lib/threats/filters";
-const MAX_ACTIVE_THREATS = 100;
-const MAX_LOGS = 1000;
+import { compileFilters } from "@/lib/threats/filters";
+const MAX_ACTIVE_THREATS = 30;
+const MAX_LOGS = 100;
 const defaultFilters: FilterState = {
   severity: {
     low: true,
@@ -47,17 +47,21 @@ interface ThreatStore {
   logs: ThreatEvent[];
   statsGlobal: ThreatStats;
   isLive: boolean;
+  speed: number;
   filters: FilterState;
   mapFeatures: GeoJSON.FeatureCollection<GeoJSON.LineString> | null;
+  mapType: "globe" | "flat";
   soundEnabled: boolean;
   addThreat: (threat: ThreatEvent) => void;
   addThreats: (threats: ThreatEvent[]) => void;
   toggleSimulation: () => void;
   resetSimulation: () => void;
+  setSpeed: (speed: number) => void;
   setFilters: (filters: Partial<FilterState>) => void;
   clearAllFilters: () => void;
   pruneExpired: () => void;
   updateMapFeatures: () => void;
+  toggleMapType: () => void;
   toggleSound: () => void;
 }
 let mapUpdateTimer: ReturnType<typeof setTimeout> | null = null;
@@ -67,8 +71,10 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   logs: [],
   statsGlobal: defaultStats,
   isLive: false,
+  speed: 1,
   filters: defaultFilters,
   mapFeatures: null,
+  mapType: "globe",
   soundEnabled: true,
   addThreat: (threat: ThreatEvent) => {
     get().addThreats([threat]);
@@ -76,7 +82,6 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   addThreats: (threats: ThreatEvent[]) => {
     if (threats.length === 0) return;
     set((state) => {
-      // Batch add threats: prepend new threats, then slice to max sizes
       const newActiveThreats = [...threats, ...state.activeThreats].slice(
         0,
         MAX_ACTIVE_THREATS
@@ -103,12 +108,16 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     }
     set({
       isLive: false,
+      speed: 1,
       activeThreats: [],
       logs: [],
       statsGlobal: defaultStats,
       filters: defaultFilters,
       mapFeatures: null,
     });
+  },
+  setSpeed: (speed: number) => {
+    set({ speed });
   },
   setFilters: (newFilters: Partial<FilterState>) => {
     set((state) => ({
@@ -147,12 +156,17 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     }
     mapUpdateTimer = setTimeout(() => {
       const state = get();
-      const compiledFilter = getCompiledFilter(state.filters);
+      const compiledFilter = compileFilters(state.filters);
       const filteredThreats = state.activeThreats.filter(compiledFilter);
       const features = threatsToLineFeatureCollection(filteredThreats);
       set({ mapFeatures: features });
       mapUpdateTimer = null;
     }, MAP_UPDATE_DEBOUNCE_MS);
+  },
+  toggleMapType: () => {
+    set((state) => ({
+      mapType: state.mapType === "globe" ? "flat" : "globe",
+    }));
   },
   toggleSound: () => {
     set((state) => ({
@@ -160,82 +174,63 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     }));
   },
 }));
-// Memoization cache for compiled filters
-const filterCache = new WeakMap<FilterState, CompiledFilter>();
-let lastFilterKey: string = "";
 
-function getCompiledFilter(filters: FilterState): CompiledFilter {
-  const filterKey = JSON.stringify(filters);
-  if (filterKey === lastFilterKey && filterCache.has(filters)) {
-    return filterCache.get(filters)!;
-  }
-  const compiled = compileFilters(filters);
-  filterCache.set(filters, compiled);
-  lastFilterKey = filterKey;
-  return compiled;
-}
+let lastFilteredLogsFilters: FilterState | null = null;
+let lastFilteredLogsLogs: ThreatEvent[] | null = null;
+let lastFilteredLogsResult: ThreatEvent[] = [];
 
-// Memoized selectors with result caching
-let cachedFilteredLogs: ThreatEvent[] | null = null;
-let cachedFilteredLogsFilterKey: string = "";
-let cachedFilteredLogsArray: ThreatEvent[] | null = null;
+let lastFilteredThreatsFilters: FilterState | null = null;
+let lastFilteredThreatsThreats: ThreatEvent[] | null = null;
+let lastFilteredThreatsResult: ThreatEvent[] = [];
 
-let cachedFilteredThreats: ThreatEvent[] | null = null;
-let cachedFilteredThreatsFilterKey: string = "";
-let cachedFilteredThreatsArray: ThreatEvent[] | null = null;
-
-let cachedStatsFiltered: ThreatStats | null = null;
-let cachedStatsFilteredFilterKey: string = "";
-let cachedStatsFilteredArray: ThreatEvent[] | null = null;
+let lastStatsFilteredFilters: FilterState | null = null;
+let lastStatsFilteredLogs: ThreatEvent[] | null = null;
+let lastStatsFilteredResult: ThreatStats = defaultStats;
 
 export const selectFilteredLogs = (state: ThreatStore): ThreatEvent[] => {
-  const filterKey = JSON.stringify(state.filters);
   if (
-    cachedFilteredLogs &&
-    cachedFilteredLogsFilterKey === filterKey &&
-    cachedFilteredLogsArray === state.logs
+    state.filters === lastFilteredLogsFilters &&
+    state.logs === lastFilteredLogsLogs
   ) {
-    return cachedFilteredLogs;
+    return lastFilteredLogsResult;
   }
-  const compiledFilter = getCompiledFilter(state.filters);
-  const filtered = state.logs.filter(compiledFilter);
-  cachedFilteredLogs = filtered;
-  cachedFilteredLogsFilterKey = filterKey;
-  cachedFilteredLogsArray = state.logs;
-  return filtered;
+
+  lastFilteredLogsFilters = state.filters;
+  lastFilteredLogsLogs = state.logs;
+
+  const compiledFilter = compileFilters(state.filters);
+  lastFilteredLogsResult = state.logs.filter(compiledFilter);
+  return lastFilteredLogsResult;
 };
 
 export const selectFilteredThreats = (state: ThreatStore): ThreatEvent[] => {
-  const filterKey = JSON.stringify(state.filters);
   if (
-    cachedFilteredThreats &&
-    cachedFilteredThreatsFilterKey === filterKey &&
-    cachedFilteredThreatsArray === state.activeThreats
+    state.filters === lastFilteredThreatsFilters &&
+    state.activeThreats === lastFilteredThreatsThreats
   ) {
-    return cachedFilteredThreats;
+    return lastFilteredThreatsResult;
   }
-  const compiledFilter = getCompiledFilter(state.filters);
-  const filtered = state.activeThreats.filter(compiledFilter);
-  cachedFilteredThreats = filtered;
-  cachedFilteredThreatsFilterKey = filterKey;
-  cachedFilteredThreatsArray = state.activeThreats;
-  return filtered;
+
+  lastFilteredThreatsFilters = state.filters;
+  lastFilteredThreatsThreats = state.activeThreats;
+
+  const compiledFilter = compileFilters(state.filters);
+  lastFilteredThreatsResult = state.activeThreats.filter(compiledFilter);
+  return lastFilteredThreatsResult;
 };
 
 export const selectStatsFiltered = (state: ThreatStore): ThreatStats => {
-  const filterKey = JSON.stringify(state.filters);
   if (
-    cachedStatsFiltered &&
-    cachedStatsFilteredFilterKey === filterKey &&
-    cachedStatsFilteredArray === state.logs
+    state.filters === lastStatsFilteredFilters &&
+    state.logs === lastStatsFilteredLogs
   ) {
-    return cachedStatsFiltered;
+    return lastStatsFilteredResult;
   }
-  const compiledFilter = getCompiledFilter(state.filters);
-  const filteredLogs = state.logs.filter(compiledFilter);
-  const stats = computeThreatStats(filteredLogs);
-  cachedStatsFiltered = stats;
-  cachedStatsFilteredFilterKey = filterKey;
-  cachedStatsFilteredArray = state.logs;
-  return stats;
+
+  lastStatsFilteredFilters = state.filters;
+  lastStatsFilteredLogs = state.logs;
+
+  const compiledFilter = compileFilters(state.filters);
+  lastStatsFilteredResult = computeThreatStats(state.logs.filter(compiledFilter));
+  return lastStatsFilteredResult;
 };
