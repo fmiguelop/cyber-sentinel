@@ -86,28 +86,50 @@ function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
         popupRef.current = null;
       }
 
+      const severityColor =
+        threat.severity === "critical"
+          ? "#ef4444"
+          : threat.severity === "medium"
+            ? "#eab308"
+            : "#22c55e";
+
       const popupContent = document.createElement("div");
       popupContent.className =
-        "space-y-1 text-xs p-2 bg-popover text-popover-foreground rounded-md border shadow-md";
+        "w-72 p-2 bg-popover text-popover-foreground rounded-r-md rounded-l-sm border-y border-r shadow-md text-xs leading-tight";
+
+      popupContent.style.border = `1px solid ${severityColor}`;
+
       popupContent.innerHTML = `
-        <div class="font-semibold">${threat.type}</div>
-        <div class="text-muted-foreground">
-          Severity: <span class="font-mono">${threat.severity}</span>
+        <div class="flex justify-between items-center mb-1.5 border-b border-border/50 pb-1">
+          <span class="font-semibold truncate pr-2">${threat.type}</span>
+          
+          <span 
+            style="color: ${severityColor};"
+            class="font-mono font-bold text-[10px] px-1.5 rounded bg-transparent"
+          >
+            ${threat.severity.toUpperCase()}
+          </span>
         </div>
-        <div class="text-muted-foreground">
-          From: ${threat.source.name}, ${threat.source.country}
+
+        <div class="flex items-center justify-between gap-1 mb-1.5 text-foreground">
+          <div class="flex-1 min-w-0 text-right">
+            <div class="truncate font-medium">${threat.source.name}</div>
+            <div class="text-[10px] text-muted-foreground truncate">${threat.source.country}</div>
+          </div>
+
+          <div class="text-muted-foreground px-1">→</div>
+
+          <div class="flex-1 min-w-0 text-left">
+            <div class="truncate font-medium">${threat.target.name}</div>
+            <div class="text-[10px] text-muted-foreground truncate">${threat.target.country}</div>
+          </div>
         </div>
-        <div class="text-muted-foreground">
-          To: ${threat.target.name}, ${threat.target.country}
-        </div>
-        <div class="text-muted-foreground">
-          ${format(new Date(threat.timestamp), "HH:mm:ss")}
-        </div>
-        <div class="text-muted-foreground font-mono text-[10px]">
-          IP: ${threat.metadata.ipAddress}
+
+        <div class="flex justify-between items-center text-[10px] text-muted-foreground font-mono bg-muted/30 -mx-2 -mb-2 px-2 py-1 mt-1">
+          <span>${threat.metadata.ipAddress}</span>
+          <span>${format(new Date(threat.timestamp), "HH:mm:ss")}</span>
         </div>
       `;
-
       const popup = new MapLibreGL.Popup({
         closeButton: false,
         closeOnClick: false,

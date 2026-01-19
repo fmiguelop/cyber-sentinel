@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HudSectionTitle } from "@/components/dashboard/hud";
 import {
@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useThreatStore } from "@/stores/useThreatStore";
 import type { Severity, AttackType, TimeRange } from "@/lib/types/threats";
+import { useMediaQuery } from "@uidotdev/usehooks";
 
 const SPEED_OPTIONS = [
   { value: 1, icon: ChevronRight, label: "1x" },
@@ -60,6 +61,7 @@ export function ControlsCard() {
   const soundEnabled = useThreatStore((state) => state.soundEnabled);
   const toggleSound = useThreatStore((state) => state.toggleSound);
   const logs = useThreatStore((state) => state.logs);
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const totalEvents = logs.length;
 
   const toggleSeverity = (severity: Severity) => {
@@ -93,7 +95,13 @@ export function ControlsCard() {
     if (!isLive) {
       toggleSimulation();
     }
-  }
+  };
+
+  useEffect(() => {
+    if (isMobile) {
+      toggleMapType();
+    }
+  }, [isMobile]);
 
   return (
     <>

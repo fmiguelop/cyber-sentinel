@@ -14,7 +14,7 @@ export function computeThreatStats(threats: ThreatEvent[]): ThreatStats {
     AS: 0,
     OC: 0,
     AF: 0,
-    CA: 0
+    CA: 0,
   };
   const sourceCountryCounts: Record<string, number> = {};
   const sourceRegionCounts: Record<City["region"], number> = {
@@ -24,7 +24,7 @@ export function computeThreatStats(threats: ThreatEvent[]): ThreatStats {
     AS: 0,
     OC: 0,
     AF: 0,
-    CA: 0
+    CA: 0,
   };
   const now = Date.now();
   let activeCritical = 0;
