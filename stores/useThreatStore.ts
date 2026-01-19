@@ -7,7 +7,7 @@ import type {
 import { threatsToLineFeatureCollection } from "@/lib/threats/geojson";
 import { computeThreatStats } from "@/lib/threats/stats";
 import { compileFilters } from "@/lib/threats/filters";
-const MAX_ACTIVE_THREATS = 300;
+const MAX_ACTIVE_THREATS = 3000;
 const MAX_LOGS = 1000;
 const defaultFilters: FilterState = {
   severity: {

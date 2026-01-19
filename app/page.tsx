@@ -102,11 +102,7 @@ export default function Home() {
         <ControlPanel />
       </div>
 
-      <div className="hidden lg:block absolute left-6 right-6 bottom-6 z-10">
-        <ResponsiveLog />
-      </div>
-
-      <div className="lg:hidden">
+      <div className="absolute left-6 right-6 bottom-6 z-10">
         <ResponsiveLog />
       </div>
     </div>

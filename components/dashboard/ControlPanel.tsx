@@ -70,6 +70,7 @@ export function ControlsCard() {
       },
     });
   };
+
   const toggleAttackType = (type: AttackType) => {
     setFilters({
       attackType: {
@@ -78,6 +79,7 @@ export function ControlsCard() {
       },
     });
   };
+
   const setTimeRange = (timeRange: TimeRange) => {
     setFilters({ timeRange });
   };
@@ -85,6 +87,14 @@ export function ControlsCard() {
     resetSimulation();
     setShowResetDialog(false);
   };
+
+  const handleSpeedChange = (speed: number) => {
+    setSpeed(speed);
+    if (!isLive) {
+      toggleSimulation();
+    }
+  }
+
   return (
     <>
       <section aria-labelledby="simulation-heading">
@@ -154,7 +164,7 @@ export function ControlsCard() {
                           ? "bg-emerald-500/20 text-emerald-500"
                           : ""
                       }`}
-                      onClick={() => setSpeed(value)}
+                      onClick={() => handleSpeedChange(value)}
                       aria-label={`Set speed to ${label}`}
                     >
                       <Icon className="h-4 w-4" />

@@ -9,9 +9,10 @@ import {
 
 import type { ThreatEvent } from "@/lib/types/threats";
 import { useThreatStore } from "@/stores/useThreatStore";
+
 const GENERATION_DELAY_MIN_MS = 500;
 const GENERATION_DELAY_MAX_MS = 2000;
-const EXPIRATION_CHECK_INTERVAL_MS = 500;
+const EXPIRATION_CHECK_INTERVAL_MS = 10000;
 const BATCH_FLUSH_INTERVAL_MS = 75;
 
 const SIM_SPEED_MULTIPLIER = 1;
@@ -80,7 +81,6 @@ export function useThreatSimulation() {
     if (!isLive) {
       if (threatBufferRef.current.length > 0) {
         addThreats(threatBufferRef.current);
-        threatBufferRef.current = [];
       }
       if (batchIntervalRef.current) {
         clearInterval(batchIntervalRef.current);
