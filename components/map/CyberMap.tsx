@@ -22,12 +22,10 @@ const loadMapIcons = (map: MapLibreGL.Map) => {
   ];
 
   icons.forEach(({ id, svg }) => {
-    // Check 1: Do we already have it?
     if (map.hasImage(id)) return;
 
     const img = new Image(24, 24);
 
-    // Check 2: Check again INSIDE onload to prevent race conditions
     img.onload = () => {
       if (!map.hasImage(id)) {
         map.addImage(id, img, { sdf: true });
@@ -45,20 +43,18 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
     [threats]
   );
 
-  // Layer Constants
   const sourceId = "threat-points";
   const circleLayerId = "threat-points-circle";
   const iconLayerId = "threat-points-icon";
   const glowLayerId = "threat-points-glow";
 
-  // Refs
   const threatsMapRef = useRef<globalThis.Map<string, ThreatEvent>>(
     new globalThis.Map()
   );
   const popupRef = useRef<MapLibreGL.Popup | null>(null);
   const animationRef = useRef<number>(null);
 
-  // 1. Maintain Lookup Map for Popups
+  //  Maintain Lookup Map for Popups
   useEffect(() => {
     const threatsLookup = new globalThis.Map<string, ThreatEvent>();
     threats.forEach((threat) => {
@@ -68,7 +64,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
     threatsMapRef.current = threatsLookup;
   }, [threats]);
 
-  // 2. Render Layers & Animation
+  // Render Layers & Animation
   useEffect(() => {
     if (!isLoaded || !map) return;
 
@@ -181,7 +177,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
     iconLayerId,
   ]);
 
-  // 3. Handle Popups (Updated to listen to new layers)
+  // Handle Popups
   useEffect(() => {
     if (!isLoaded || !map) return;
 
@@ -264,7 +260,6 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
       }
     };
 
-    // Attach listeners to BOTH interactive layers
     map.on("mouseenter", circleLayerId, handleMouseEnter);
     map.on("mouseenter", iconLayerId, handleMouseEnter);
     map.on("mouseleave", circleLayerId, handleMouseLeave);
@@ -305,9 +300,7 @@ export function CyberMap() {
           <MapLineLayer data={mapFeatures} width={2} opacity={0.7} />
         )}
 
-        {filteredThreats.length > 0 && (
-          <ThreatPointLayer threats={filteredThreats} />
-        )}
+        <ThreatPointLayer threats={filteredThreats} />
       </Map>
     </div>
   );

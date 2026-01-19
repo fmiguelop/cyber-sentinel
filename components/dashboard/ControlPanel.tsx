@@ -12,6 +12,8 @@ import {
   Pause,
   Play,
   RotateCcw,
+  Square,
+  StopCircle,
   Volume2,
   VolumeX,
   Zap,
@@ -40,6 +42,7 @@ import {
 import { useThreatStore } from "@/stores/useThreatStore";
 import type { Severity, AttackType, TimeRange } from "@/lib/types/threats";
 import { useMediaQuery } from "@uidotdev/usehooks";
+import { cn } from "@/lib/utils";
 
 const SPEED_OPTIONS = [
   { value: 1, icon: ChevronRight, label: "1x" },
@@ -47,7 +50,11 @@ const SPEED_OPTIONS = [
   { value: 4, icon: Zap, label: "4x" },
 ] as const;
 
-export default function ControlPanel() {
+interface Props {
+  origin?: "header" | "sidebar";
+}
+
+export default function ControlPanel({ origin = "sidebar" }: Props) {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const isLive = useThreatStore((state) => state.isLive);
   const speed = useThreatStore((state) => state.speed);
@@ -106,7 +113,11 @@ export default function ControlPanel() {
   return (
     <div role="region" aria-label="Control Panel" className="lg:px-6 lg:py-4">
       <section aria-labelledby="simulation-heading">
-        <HudSectionTitle icon={Activity} id="simulation-heading">
+        <HudSectionTitle
+          icon={Activity}
+          id="simulation-heading"
+          className={origin === "header" ? "hidden" : ""}
+        >
           Simulation
         </HudSectionTitle>
         <TooltipProvider>
@@ -124,13 +135,13 @@ export default function ControlPanel() {
                   }`}
                   disabled={totalEvents === 0}
                   onClick={() => setShowResetDialog(true)}
-                  aria-label="Reset simulation"
+                  aria-label="Stop simulation"
                 >
-                  <RotateCcw className="h-4 w-4" />
+                  <Square className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Reset Data</p>
+                <p>Stop Simulation</p>
               </TooltipContent>
             </Tooltip>
 
@@ -141,9 +152,11 @@ export default function ControlPanel() {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                    isLive ? "text-emerald-500" : ""
-                  }`}
+                  className={cn(
+                    "h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring",
+                    isLive ? "text-emerald-500" : "",
+                    !isLive && totalEvents > 0 ? "text-emerald-500" : ""
+                  )}
                   onClick={toggleSimulation}
                   aria-label={isLive ? "Pause simulation" : "Start simulation"}
                 >
@@ -161,14 +174,16 @@ export default function ControlPanel() {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-0">
+                <div
+                  className={`flex items-center gap-0 ${origin === "header" ? "hidden" : ""}`}
+                >
                   {SPEED_OPTIONS.map(({ value, icon: Icon, label }) => (
                     <Button
                       key={value}
                       size="icon"
                       variant="ghost"
                       className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        speed === value
+                        speed === value && isLive
                           ? "bg-emerald-500/20 text-emerald-500"
                           : ""
                       }`}
