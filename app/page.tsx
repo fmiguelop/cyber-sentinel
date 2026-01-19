@@ -6,9 +6,9 @@ import { useThreatSimulation } from "@/hooks/useThreatSimulation";
 import { useCriticalAlertSound } from "@/hooks/useCriticalAlertSound";
 import { useTour } from "@/hooks/useTour";
 import { CyberMap } from "@/components/map/CyberMap";
-import { ControlPanel } from "@/components/dashboard/ControlPanel";
+// import { ControlPanel } from "@/components/dashboard/ControlPanel";
 import { ResponsiveLog } from "@/components/dashboard/ResponsiveLog";
-import { ControlsCard } from "@/components/dashboard/ControlPanel";
+// import { ControlsCard } from "@/components/dashboard/ControlPanel";
 // import { DefconSection } from "@/components/dashboard/DefconSection";
 import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,12 @@ const DefconSection = dynamic(
     loading: () => <p>Loading...</p>, // Optional placeholder
   }
 );
+
+const ControlPanel = dynamic(() => import("../components/dashboard/ControlPanel"),
+  {
+    ssr: false,
+    loading: () => <p>Loading...</p>, // Optional placeholder
+  })
 
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   return (
@@ -76,7 +82,7 @@ export default function Home() {
             <SheetTitle>Settings</SheetTitle>
           </SheetHeader>
           <div className="px-6 pb-6 space-y-6">
-            <ControlsCard />
+            <ControlPanel />
             <DefconSection />
           </div>
         </SheetContent>

@@ -130,6 +130,9 @@ export function useTour() {
       animate: true,
       overlayOpacity: 0.7,
       smoothScroll: true,
+      doneBtnText: "Start",
+      nextBtnText: "Next",
+      prevBtnText: "Previous",
       steps: steps,
       onDestroyed: () => {
         driverInstanceRef.current = null;

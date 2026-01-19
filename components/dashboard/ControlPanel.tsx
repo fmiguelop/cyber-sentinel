@@ -47,7 +47,7 @@ const SPEED_OPTIONS = [
   { value: 4, icon: Zap, label: "4x" },
 ] as const;
 
-export function ControlsCard() {
+export default function ControlPanel() {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const isLive = useThreatStore((state) => state.isLive);
   const speed = useThreatStore((state) => state.speed);
@@ -104,7 +104,7 @@ export function ControlsCard() {
   }, [isMobile]);
 
   return (
-    <>
+    <div role="region" aria-label="Control Panel" className="lg:px-6 lg:py-4">
       <section aria-labelledby="simulation-heading">
         <HudSectionTitle icon={Activity} id="simulation-heading">
           Simulation
@@ -429,13 +429,6 @@ export function ControlsCard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
-  );
-}
-export function ControlPanel() {
-  return (
-    <div role="region" aria-label="Control Panel" className="px-6 py-4">
-      <ControlsCard />
     </div>
   );
 }
