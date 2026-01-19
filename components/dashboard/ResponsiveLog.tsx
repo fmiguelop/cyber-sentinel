@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useThreatStore, selectFilteredLogs } from "@/stores/useThreatStore";
 import { severityToColorToken } from "@/lib/threats/random";
-import { ChevronUp, ChevronDown, Download, FileJson, FileSpreadsheet } from "lucide-react";
+import {
+  ChevronUp,
+  ChevronDown,
+  Download,
+  FileJson,
+  FileSpreadsheet,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +41,7 @@ export function ResponsiveLog() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const [isMobile, setIsMobile] = useState(false);
-  
+
   const handleExportFilteredJson = () => {
     const content = logsToJson(filteredLogs);
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");

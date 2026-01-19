@@ -61,7 +61,7 @@ export function ControlsCard() {
   const toggleSound = useThreatStore((state) => state.toggleSound);
   const logs = useThreatStore((state) => state.logs);
   const totalEvents = logs.length;
-  
+
   const toggleSeverity = (severity: Severity) => {
     setFilters({
       severity: {
@@ -102,9 +102,7 @@ export function ControlsCard() {
                   size="icon"
                   variant="ghost"
                   className={`h-8 w-8 rounded-none hover:text-red-500 focus-visible:ring-2 focus-visible:ring-ring ${
-                    totalEvents === 0
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
+                    totalEvents === 0 ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                   disabled={totalEvents === 0}
                   onClick={() => setShowResetDialog(true)}
@@ -302,24 +300,24 @@ export function ControlsCard() {
                             Time Range
                           </p>
                           <div className="flex flex-wrap gap-2" role="group">
-                            {(["1min", "5min", "1hr", "all"] as TimeRange[]).map(
-                              (range) => (
-                                <Button
-                                  key={range}
-                                  variant="outline"
-                                  size="sm"
-                                  className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                                    filters.timeRange === range
-                                      ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
-                                      : ""
-                                  }`}
-                                  onClick={() => setTimeRange(range)}
-                                  aria-pressed={filters.timeRange === range}
-                                >
-                                  {range === "all" ? "All" : range}
-                                </Button>
-                              )
-                            )}
+                            {(
+                              ["1min", "5min", "1hr", "all"] as TimeRange[]
+                            ).map((range) => (
+                              <Button
+                                key={range}
+                                variant="outline"
+                                size="sm"
+                                className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                  filters.timeRange === range
+                                    ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                    : ""
+                                }`}
+                                onClick={() => setTimeRange(range)}
+                                aria-pressed={filters.timeRange === range}
+                              >
+                                {range === "all" ? "All" : range}
+                              </Button>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -343,7 +341,9 @@ export function ControlsCard() {
                   }`}
                   onClick={toggleMapType}
                   aria-label={
-                    mapType === "globe" ? "Switch to flat map" : "Switch to globe view"
+                    mapType === "globe"
+                      ? "Switch to flat map"
+                      : "Switch to globe view"
                   }
                 >
                   {mapType === "globe" ? (
@@ -371,7 +371,9 @@ export function ControlsCard() {
                   }`}
                   onClick={toggleSound}
                   aria-label={
-                    soundEnabled ? "Disable sound alerts" : "Enable sound alerts"
+                    soundEnabled
+                      ? "Disable sound alerts"
+                      : "Enable sound alerts"
                   }
                 >
                   {soundEnabled ? (
@@ -414,11 +416,7 @@ export function ControlsCard() {
 }
 export function ControlPanel() {
   return (
-    <div
-      role="region"
-      aria-label="Control Panel"
-      className="px-6 py-4"
-    >
+    <div role="region" aria-label="Control Panel" className="px-6 py-4">
       <ControlsCard />
     </div>
   );

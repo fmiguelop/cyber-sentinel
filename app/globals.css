@@ -120,7 +120,8 @@ body {
     -webkit-backdrop-filter: blur(12px) !important;
     border: 1px solid rgb(var(--border)) !important;
     border-radius: 0.5rem !important;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3),
+    box-shadow:
+      0 10px 15px -3px rgb(0 0 0 / 0.3),
       0 4px 6px -4px rgb(0 0 0 / 0.3) !important;
     color: rgb(var(--card-foreground)) !important;
     padding: 1.5rem !important;
@@ -180,9 +181,7 @@ body {
     text-shadow: none !important;
   }
 
-  .cybersentinel-driver
-    .driver-popover-footer
-    button.driver-prev-btn:hover {
+  .cybersentinel-driver .driver-popover-footer button.driver-prev-btn:hover {
     background-color: rgb(var(--muted)) !important;
     text-shadow: none !important;
   }
@@ -194,9 +193,7 @@ body {
     padding: 0.5rem !important;
   }
 
-  .cybersentinel-driver
-    .driver-popover-footer
-    button.driver-close-btn:hover {
+  .cybersentinel-driver .driver-popover-footer button.driver-close-btn:hover {
     color: rgb(var(--foreground)) !important;
     background-color: rgb(var(--muted)) !important;
   }

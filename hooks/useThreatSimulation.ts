@@ -14,7 +14,7 @@ const GENERATION_DELAY_MAX_MS = 2000;
 const EXPIRATION_CHECK_INTERVAL_MS = 500;
 const BATCH_FLUSH_INTERVAL_MS = 75;
 
-const SIM_SPEED_MULTIPLIER = 0.1;
+const SIM_SPEED_MULTIPLIER = 1;
 
 function getRandomDelay(speed: number): number {
   const baseDelay =
@@ -28,10 +28,13 @@ function generateThreatEvent(): ThreatEvent {
   const severity = getRandomSeverity();
   const type = getRandomAttackType();
   const duration = getRandomDurationMs();
-  
+
   // Try crypto.randomUUID first, fallback to faker for compatibility
   let generatedId: string;
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
     try {
       generatedId = crypto.randomUUID();
     } catch (error) {
@@ -40,7 +43,7 @@ function generateThreatEvent(): ThreatEvent {
   } else {
     generatedId = faker.string.uuid();
   }
-  
+
   const threat: ThreatEvent = {
     id: generatedId,
     timestamp: Date.now(),

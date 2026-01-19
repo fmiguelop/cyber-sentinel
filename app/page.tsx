@@ -19,13 +19,15 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/branding/logo";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
-
-const DefconSection = dynamic(() => import('../components/dashboard/DefconSection'), {
-  ssr: false,
-  loading: () => <p>Loading...</p>, // Optional placeholder
-});
+const DefconSection = dynamic(
+  () => import("../components/dashboard/DefconSection"),
+  {
+    ssr: false,
+    loading: () => <p>Loading...</p>, // Optional placeholder
+  }
+);
 
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   return (

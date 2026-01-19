@@ -8,11 +8,7 @@ import { threatsToPointFeatureCollection } from "@/lib/threats/geojson";
 import type { ThreatEvent } from "@/lib/types/threats";
 import type { ThreatPointFeatureProperties } from "@/lib/threats/geojson";
 
-function ThreatPointLayer({
-  threats,
-}: {
-  threats: ThreatEvent[];
-}) {
+function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
   const { map, isLoaded } = useMap();
   const pointFeatures = useMemo(
     () => threatsToPointFeatureCollection(threats),

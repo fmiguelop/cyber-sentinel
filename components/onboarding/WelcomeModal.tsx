@@ -84,8 +84,8 @@ export function WelcomeModal({ onStartTour }: WelcomeModalProps) {
                 <div>
                   <p className="font-semibold mb-1">Global Threat Status</p>
                   <p className="text-xs text-muted-foreground">
-                    Monitor threat levels and metrics in the left panel. Tap
-                    the menu icon to access controls.
+                    Monitor threat levels and metrics in the left panel. Tap the
+                    menu icon to access controls.
                   </p>
                 </div>
                 <div>
