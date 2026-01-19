@@ -33,6 +33,7 @@ const defaultStats: ThreatStats = {
     AS: 0,
     OC: 0,
     AF: 0,
+    CA: 0,
   },
   bySeverity: {
     low: 0,
