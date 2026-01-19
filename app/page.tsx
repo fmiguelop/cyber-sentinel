@@ -9,7 +9,7 @@ import { CyberMap } from "@/components/map/CyberMap";
 import { ControlPanel } from "@/components/dashboard/ControlPanel";
 import { ResponsiveLog } from "@/components/dashboard/ResponsiveLog";
 import { ControlsCard } from "@/components/dashboard/ControlPanel";
-import { DefconSection } from "@/components/dashboard/DefconSection";
+// import { DefconSection } from "@/components/dashboard/DefconSection";
 import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Logo } from "@/components/branding/logo";
+import dynamic from 'next/dynamic';
+
+
+const DefconSection = dynamic(() => import('../components/dashboard/DefconSection'), {
+  ssr: false,
+  loading: () => <p>Loading...</p>, // Optional placeholder
+});
+
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <header className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-background/95 backdrop-blur-sm border-b border-border">

@@ -116,7 +116,7 @@ function TrendArrow({ now, global }: { now: number; global: number }) {
   );
 }
 
-export function DefconSection() {
+export default function DefconSection() {
   const statsGlobal = useThreatStore((state) => state.statsGlobal);
   const activeThreats = useThreatStore((state) => state.activeThreats);
   const filteredThreats = useThreatStore(selectFilteredThreats);
