@@ -91,8 +91,11 @@ export function ControlsCard() {
         <HudSectionTitle icon={Activity} id="simulation-heading">
           Simulation
         </HudSectionTitle>
-        <div className="flex items-center gap-1 bg-zinc-900/50 p-1 border border-zinc-800 rounded-sm h-10">
-          <TooltipProvider>
+        <TooltipProvider>
+          <div
+            id="simulation-controls"
+            className="flex items-center gap-1 bg-zinc-900/50 p-1 border border-zinc-800 rounded-sm h-10"
+          >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -111,238 +114,279 @@ export function ControlsCard() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Stop & clear all data</p>
+                <p>Reset Data</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
 
-          <div className="h-6 w-px bg-zinc-700" />
+            <div className="h-6 w-px bg-zinc-700" />
 
-          <Button
-            size="icon"
-            variant="ghost"
-            className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-              isLive ? "text-emerald-500" : ""
-            }`}
-            onClick={toggleSimulation}
-            aria-label={isLive ? "Pause simulation" : "Start simulation"}
-          >
-            {isLive ? (
-              <Pause className="h-4 w-4" />
-            ) : (
-              <Play className="h-4 w-4" />
-            )}
-          </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    isLive ? "text-emerald-500" : ""
+                  }`}
+                  onClick={toggleSimulation}
+                  aria-label={isLive ? "Pause simulation" : "Start simulation"}
+                >
+                  {isLive ? (
+                    <Pause className="h-4 w-4" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle Simulation</p>
+              </TooltipContent>
+            </Tooltip>
 
-          {SPEED_OPTIONS.map(({ value, icon: Icon, label }) => (
-            <Button
-              key={value}
-              size="icon"
-              variant="ghost"
-              className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                speed === value
-                  ? "bg-emerald-500/20 text-emerald-500"
-                  : ""
-              }`}
-              onClick={() => setSpeed(value)}
-              aria-label={`Set speed to ${label}`}
-            >
-              <Icon className="h-4 w-4" />
-            </Button>
-          ))}
-
-          <div className="h-6 w-px bg-zinc-700" />
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label="Open filters"
-              >
-                <Filter className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="bg-zinc-950/95 backdrop-blur-md border border-zinc-800 p-3 w-80 text-xs"
-            >
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <p className="font-mono uppercase tracking-widest text-[10px] text-zinc-400 mb-2">
-                    Severity
-                  </p>
-                  <div className="flex flex-wrap gap-2" role="group">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-0">
+                  {SPEED_OPTIONS.map(({ value, icon: Icon, label }) => (
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        filters.severity.low
-                          ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                      key={value}
+                      size="icon"
+                      variant="ghost"
+                      className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                        speed === value
+                          ? "bg-emerald-500/20 text-emerald-500"
                           : ""
                       }`}
-                      onClick={() => toggleSeverity("low")}
-                      aria-pressed={filters.severity.low}
+                      onClick={() => setSpeed(value)}
+                      aria-label={`Set speed to ${label}`}
                     >
-                      Low
+                      <Icon className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        filters.severity.medium
-                          ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
-                          : ""
-                      }`}
-                      onClick={() => toggleSeverity("medium")}
-                      aria-pressed={filters.severity.medium}
-                    >
-                      Medium
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        filters.severity.critical
-                          ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
-                          : ""
-                      }`}
-                      onClick={() => toggleSeverity("critical")}
-                      aria-pressed={filters.severity.critical}
-                    >
-                      Critical
-                    </Button>
-                  </div>
+                  ))}
                 </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Simulation Speed (1x/2x/4x)</p>
+              </TooltipContent>
+            </Tooltip>
 
-                <div className="space-y-2">
-                  <p className="font-mono uppercase tracking-widest text-[10px] text-zinc-400 mb-2">
-                    Attack Types
-                  </p>
-                  <div className="flex flex-wrap gap-2" role="group">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        filters.attackType.DDoS
-                          ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
-                          : ""
-                      }`}
-                      onClick={() => toggleAttackType("DDoS")}
-                      aria-pressed={filters.attackType.DDoS}
+            <div className="h-6 w-px bg-zinc-700" />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div id="active-filters">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-label="Open filters"
+                      >
+                        <Filter className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="bg-zinc-950/95 backdrop-blur-md border border-zinc-800 p-3 w-80 text-xs"
                     >
-                      DDoS
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        filters.attackType.Phishing
-                          ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
-                          : ""
-                      }`}
-                      onClick={() => toggleAttackType("Phishing")}
-                      aria-pressed={filters.attackType.Phishing}
-                    >
-                      Phishing
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        filters.attackType.Malware
-                          ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
-                          : ""
-                      }`}
-                      onClick={() => toggleAttackType("Malware")}
-                      aria-pressed={filters.attackType.Malware}
-                    >
-                      Malware
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        filters.attackType.BruteForce
-                          ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
-                          : ""
-                      }`}
-                      onClick={() => toggleAttackType("BruteForce")}
-                      aria-pressed={filters.attackType.BruteForce}
-                    >
-                      BruteForce
-                    </Button>
-                  </div>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <p className="font-mono uppercase tracking-widest text-[10px] text-zinc-400 mb-2">
+                            Severity
+                          </p>
+                          <div className="flex flex-wrap gap-2" role="group">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                filters.severity.low
+                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  : ""
+                              }`}
+                              onClick={() => toggleSeverity("low")}
+                              aria-pressed={filters.severity.low}
+                            >
+                              Low
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                filters.severity.medium
+                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  : ""
+                              }`}
+                              onClick={() => toggleSeverity("medium")}
+                              aria-pressed={filters.severity.medium}
+                            >
+                              Medium
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                filters.severity.critical
+                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  : ""
+                              }`}
+                              onClick={() => toggleSeverity("critical")}
+                              aria-pressed={filters.severity.critical}
+                            >
+                              Critical
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="font-mono uppercase tracking-widest text-[10px] text-zinc-400 mb-2">
+                            Attack Types
+                          </p>
+                          <div className="flex flex-wrap gap-2" role="group">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                filters.attackType.DDoS
+                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  : ""
+                              }`}
+                              onClick={() => toggleAttackType("DDoS")}
+                              aria-pressed={filters.attackType.DDoS}
+                            >
+                              DDoS
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                filters.attackType.Phishing
+                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  : ""
+                              }`}
+                              onClick={() => toggleAttackType("Phishing")}
+                              aria-pressed={filters.attackType.Phishing}
+                            >
+                              Phishing
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                filters.attackType.Malware
+                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  : ""
+                              }`}
+                              onClick={() => toggleAttackType("Malware")}
+                              aria-pressed={filters.attackType.Malware}
+                            >
+                              Malware
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                filters.attackType.BruteForce
+                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  : ""
+                              }`}
+                              onClick={() => toggleAttackType("BruteForce")}
+                              aria-pressed={filters.attackType.BruteForce}
+                            >
+                              BruteForce
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="font-mono uppercase tracking-widest text-[10px] text-zinc-400 mb-2">
+                            Time Range
+                          </p>
+                          <div className="flex flex-wrap gap-2" role="group">
+                            {(["1min", "5min", "1hr", "all"] as TimeRange[]).map(
+                              (range) => (
+                                <Button
+                                  key={range}
+                                  variant="outline"
+                                  size="sm"
+                                  className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                    filters.timeRange === range
+                                      ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                      : ""
+                                  }`}
+                                  onClick={() => setTimeRange(range)}
+                                  aria-pressed={filters.timeRange === range}
+                                >
+                                  {range === "all" ? "All" : range}
+                                </Button>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Filter Threat Types</p>
+              </TooltipContent>
+            </Tooltip>
 
-                <div className="space-y-2">
-                  <p className="font-mono uppercase tracking-widest text-[10px] text-zinc-400 mb-2">
-                    Time Range
-                  </p>
-                  <div className="flex flex-wrap gap-2" role="group">
-                    {(["1min", "5min", "1hr", "all"] as TimeRange[]).map(
-                      (range) => (
-                        <Button
-                          key={range}
-                          variant="outline"
-                          size="sm"
-                          className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                            filters.timeRange === range
-                              ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
-                              : ""
-                          }`}
-                          onClick={() => setTimeRange(range)}
-                          aria-pressed={filters.timeRange === range}
-                        >
-                          {range === "all" ? "All" : range}
-                        </Button>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  id="map-view-button"
+                  size="icon"
+                  variant="ghost"
+                  className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    mapType === "flat" ? "text-emerald-500" : ""
+                  }`}
+                  onClick={toggleMapType}
+                  aria-label={
+                    mapType === "globe" ? "Switch to flat map" : "Switch to globe view"
+                  }
+                >
+                  {mapType === "globe" ? (
+                    <MapIcon className="h-4 w-4" />
+                  ) : (
+                    <Globe className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle Map View</p>
+              </TooltipContent>
+            </Tooltip>
 
-          <Button
-            size="icon"
-            variant="ghost"
-            className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-              mapType === "flat" ? "text-emerald-500" : ""
-            }`}
-            onClick={toggleMapType}
-            aria-label={
-              mapType === "globe" ? "Switch to flat map" : "Switch to globe view"
-            }
-          >
-            {mapType === "globe" ? (
-              <MapIcon className="h-4 w-4" />
-            ) : (
-              <Globe className="h-4 w-4" />
-            )}
-          </Button>
+            <div className="h-6 w-px bg-zinc-700" />
 
-          <div className="h-6 w-px bg-zinc-700" />
-
-          <Button
-            size="icon"
-            variant="ghost"
-            className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-              soundEnabled ? "text-emerald-500" : ""
-            }`}
-            onClick={toggleSound}
-            aria-label={
-              soundEnabled ? "Disable sound alerts" : "Enable sound alerts"
-            }
-          >
-            {soundEnabled ? (
-              <Volume2 className="h-4 w-4" />
-            ) : (
-              <VolumeX className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  id="sound-button"
+                  size="icon"
+                  variant="ghost"
+                  className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    soundEnabled ? "text-emerald-500" : ""
+                  }`}
+                  onClick={toggleSound}
+                  aria-label={
+                    soundEnabled ? "Disable sound alerts" : "Enable sound alerts"
+                  }
+                >
+                  {soundEnabled ? (
+                    <Volume2 className="h-4 w-4" />
+                  ) : (
+                    <VolumeX className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle Audio Effects</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </section>
 
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>

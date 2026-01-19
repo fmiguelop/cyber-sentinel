@@ -4,12 +4,14 @@ import Image from "next/image";
 import { Menu } from "lucide-react";
 import { useThreatSimulation } from "@/hooks/useThreatSimulation";
 import { useCriticalAlertSound } from "@/hooks/useCriticalAlertSound";
+import { useTour } from "@/hooks/useTour";
 import { CyberMap } from "@/components/map/CyberMap";
 import { ControlPanel } from "@/components/dashboard/ControlPanel";
 import { ResponsiveLog } from "@/components/dashboard/ResponsiveLog";
 import { DefconCard } from "@/components/dashboard/StatHUD";
 import { ControlsCard } from "@/components/dashboard/ControlPanel";
 import { DefconSection } from "@/components/dashboard/DefconSection";
+import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -46,9 +48,12 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
 export default function Home() {
   useThreatSimulation();
   useCriticalAlertSound();
+  const { startTour } = useTour();
   const [sheetOpen, setSheetOpen] = useState(false);
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background">
+      <WelcomeModal onStartTour={startTour} />
+
       <div className="lg:hidden">
         <MobileHeader onMenuClick={() => setSheetOpen(true)} />
       </div>
@@ -68,11 +73,14 @@ export default function Home() {
         </SheetContent>
       </Sheet>
 
-      <div className="absolute inset-0 z-0">
+      <div id="cyber-map" className="absolute inset-0 z-0">
         <CyberMap />
       </div>
 
-      <div className="hidden lg:block absolute left-6 top-6 z-10 w-[350px] max-h-[calc(100vh-3rem)] overflow-y-auto overflow-x-clip bg-zinc-950/80 backdrop-blur-md border border-zinc-800 isolate">
+      <div
+        id="defcon-panel"
+        className="hidden lg:block absolute left-6 top-6 z-10 w-[350px] max-h-[calc(100vh-3rem)] overflow-y-auto overflow-x-clip bg-zinc-950/80 backdrop-blur-md border border-zinc-800 isolate"
+      >
         <div className="p-6">
           <DefconSection />
         </div>

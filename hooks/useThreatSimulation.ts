@@ -13,6 +13,7 @@ const GENERATION_DELAY_MIN_MS = 500;
 const GENERATION_DELAY_MAX_MS = 2000;
 const EXPIRATION_CHECK_INTERVAL_MS = 500;
 const BATCH_FLUSH_INTERVAL_MS = 75;
+
 const SIM_SPEED_MULTIPLIER = 0.1;
 
 function getRandomDelay(speed: number): number {
@@ -48,7 +49,6 @@ function generateThreatEvent(): ThreatEvent {
 export function useThreatSimulation() {
   const isLive = useThreatStore((state) => state.isLive);
   const speed = useThreatStore((state) => state.speed);
-  console.log("speed", speed);
   const addThreats = useThreatStore((state) => state.addThreats);
   const pruneExpired = useThreatStore((state) => state.pruneExpired);
   const generationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(

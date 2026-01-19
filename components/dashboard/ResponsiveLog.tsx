@@ -147,6 +147,7 @@ export function ResponsiveLog() {
     : DESKTOP_HEIGHT;
   return (
     <motion.div
+      id="event-log"
       animate={{
         height: heightValue,
       }}
