@@ -8,7 +8,6 @@ import { useTour } from "@/hooks/useTour";
 import { CyberMap } from "@/components/map/CyberMap";
 import { ControlPanel } from "@/components/dashboard/ControlPanel";
 import { ResponsiveLog } from "@/components/dashboard/ResponsiveLog";
-import { DefconCard } from "@/components/dashboard/StatHUD";
 import { ControlsCard } from "@/components/dashboard/ControlPanel";
 import { DefconSection } from "@/components/dashboard/DefconSection";
 import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
@@ -66,9 +65,9 @@ export default function Home() {
           <SheetHeader className="px-6 pt-6 pb-4">
             <SheetTitle>Settings</SheetTitle>
           </SheetHeader>
-          <div className="px-6 pb-6">
-            <DefconCard disableTooltip={true} />
+          <div className="px-6 pb-6 space-y-6">
             <ControlsCard />
+            <DefconSection />
           </div>
         </SheetContent>
       </Sheet>

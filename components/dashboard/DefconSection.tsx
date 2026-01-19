@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { ChevronUp, ChevronDown } from "lucide-react";
+import {  ChevronDown } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { HudDivider } from "@/components/dashboard/hud";
 import {
@@ -9,6 +9,7 @@ import {
   selectStatsFiltered,
 } from "@/stores/useThreatStore";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@uidotdev/usehooks";
 
 function getDefconLevel(activeCritical: number): number {
   if (activeCritical === 0) return 5;
@@ -118,10 +119,10 @@ function TrendArrow({ now, global }: { now: number; global: number }) {
 export function DefconSection() {
   const statsGlobal = useThreatStore((state) => state.statsGlobal);
   const activeThreats = useThreatStore((state) => state.activeThreats);
-  const filters = useThreatStore((state) => state.filters);
   const filteredThreats = useThreatStore(selectFilteredThreats);
   const statsFiltered = useThreatStore(selectStatsFiltered);
   const shouldReduceMotion = useReducedMotion();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   const defconLevel = getDefconLevel(statsGlobal.activeCritical);
   const defconSubtitle = getDefconSubtitle(defconLevel);
@@ -133,39 +134,13 @@ export function DefconSection() {
 
   const nowIsEmpty =
     filteredThreats.length === 0 && statsFiltered.totalAttacks === 0;
-  const enabledSeverities = Object.entries(filters.severity).filter(
-    ([_, enabled]) => enabled
-  );
-  const enabledAttackTypes = Object.entries(filters.attackType).filter(
-    ([_, enabled]) => enabled
-  );
-  const isAllSeveritiesEnabled =
-    enabledSeverities.length === Object.keys(filters.severity).length;
-  const isAllAttackTypesEnabled =
-    enabledAttackTypes.length === Object.keys(filters.attackType).length;
-  const activeSeverityBadges = isAllSeveritiesEnabled
-    ? []
-    : enabledSeverities.map(
-        ([severity]) => severity as "low" | "medium" | "critical"
-      );
-  const activeAttackTypeBadges = isAllAttackTypesEnabled
-    ? []
-    : enabledAttackTypes.map(([type]) => type);
-  const timeRangeLabel =
-    filters.timeRange === "all"
-      ? "All Time"
-      : filters.timeRange === "1min"
-        ? "Last 1min"
-        : filters.timeRange === "5min"
-          ? "Last 5min"
-          : "Last 1hr";
-
 
   return (
     <div role="region" aria-label="DEFCON Status">
       <button
         type="button"
         onClick={toggleExpanded}
+        disabled={isMobile}
         className={cn(
           "w-full text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm",
           isExpanded && "mb-4"
@@ -182,11 +157,8 @@ export function DefconSection() {
               DEFCON {defconLevel}
             </span>
           </div>
-          {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-zinc-500" />
-          ) : (
-            <ChevronDown className="h-4 w-4 text-zinc-500" />
-          )}
+          <ChevronDown className={cn("h-4 w-4 text-zinc-500 transition-transform duration-200 hidden md:block", isExpanded && "rotate-180")} />
+
         </div>
         <div className="text-xs text-muted-foreground mt-1">
           {defconSubtitle}

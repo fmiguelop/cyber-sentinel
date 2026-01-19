@@ -28,8 +28,21 @@ function generateThreatEvent(): ThreatEvent {
   const severity = getRandomSeverity();
   const type = getRandomAttackType();
   const duration = getRandomDurationMs();
+  
+  // Try crypto.randomUUID first, fallback to faker for compatibility
+  let generatedId: string;
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    try {
+      generatedId = crypto.randomUUID();
+    } catch (error) {
+      generatedId = faker.string.uuid();
+    }
+  } else {
+    generatedId = faker.string.uuid();
+  }
+  
   const threat: ThreatEvent = {
-    id: crypto.randomUUID(),
+    id: generatedId,
     timestamp: Date.now(),
     source,
     target,
