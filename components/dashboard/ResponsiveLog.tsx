@@ -23,15 +23,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logsToJson, logsToCsv, downloadTextFile } from "@/lib/threats/export";
-type LogPanelSize = "min" | "normal" | "max";
-const MOBILE_HEIGHTS = {
-  min: "h-16",
-  max: "h-[60vh]",
-} as const;
+import { cn } from "@/lib/utils";
+
+type LogPanelSize = "min"| "max";
+
 const DESKTOP_HEIGHT = "calc((100vh - 13rem) / 6)";
+
 const SIZE_ENTRY_LIMITS = {
   min: 3,
-  normal: 10,
   max: Infinity,
 } as const;
 const STORAGE_KEY = "cybersentinel-log-panel-size";
@@ -40,7 +39,6 @@ export function ResponsiveLog() {
   const logs = useThreatStore((state) => state.logs);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
-  const [isMobile, setIsMobile] = useState(false);
 
   const handleExportFilteredJson = () => {
     const content = logsToJson(filteredLogs);
@@ -70,47 +68,23 @@ export function ResponsiveLog() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     downloadTextFile(`threats-full-${timestamp}.csv`, "text/csv", content);
   };
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-  const [panelSize, setPanelSize] = useState<LogPanelSize>(() => {
-    if (typeof window !== "undefined") {
-      const stored = sessionStorage.getItem(STORAGE_KEY) as LogPanelSize | null;
-      if (stored && ["min", "normal", "max"].includes(stored)) {
-        if (window.innerWidth >= 1024 && stored === "min") {
-          return "normal";
-        }
-        return stored;
-      }
-      return window.innerWidth >= 1024 ? "normal" : "min";
-    }
-    return "normal";
-  });
-  useEffect(() => {
-    if (!isMobile && panelSize !== "normal") {
-      setPanelSize("normal");
-    }
-  }, [isMobile, panelSize]);
+
+  const [panelSize, setPanelSize] = useState<LogPanelSize>('min');
+
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const sizeToStore =
-        !isMobile && panelSize === "min" ? "normal" : panelSize;
+      const sizeToStore = panelSize === "min" ? "normal" : panelSize;
       sessionStorage.setItem(STORAGE_KEY, sizeToStore);
     }
-  }, [panelSize, isMobile]);
-  const handleMobileToggle = useCallback(() => {
-    if (!isMobile) return;
+  }, [panelSize]);
+  const handleLogToggle = useCallback(() => {
     setPanelSize((current) => (current === "min" ? "max" : "min"));
-  }, [isMobile]);
+  }, []);
   const previousCriticalIdsRef = useRef<Set<string>>(new Set());
   const [criticalAnnouncements, setCriticalAnnouncements] = useState<string[]>(
     []
   );
+  
   useEffect(() => {
     const newCriticalThreats = filteredLogs
       .filter(
@@ -133,7 +107,7 @@ export function ResponsiveLog() {
     }
   }, [filteredLogs]);
   useEffect(() => {
-    if (isMobile && panelSize === "max" && scrollAreaRef.current) {
+    if (panelSize === "max" && scrollAreaRef.current) {
       const viewport = scrollAreaRef.current.querySelector(
         "[data-radix-scroll-area-viewport]"
       );
@@ -141,16 +115,14 @@ export function ResponsiveLog() {
         viewport.scrollTop = 0;
       }
     }
-  }, [filteredLogs.length, panelSize, isMobile]);
+  }, [filteredLogs.length, panelSize]);
   const displayedLogs =
-    panelSize === "max" || !isMobile
+    panelSize === "max"
       ? filteredLogs
       : filteredLogs.slice(0, SIZE_ENTRY_LIMITS[panelSize]);
-  const heightValue = isMobile
-    ? panelSize === "min"
-      ? "4rem"
-      : "60vh"
-    : DESKTOP_HEIGHT;
+  const heightValue =  panelSize === "min"
+      ? DESKTOP_HEIGHT
+      : "60vh";
   return (
     <motion.div
       id="event-log"
@@ -162,11 +134,7 @@ export function ResponsiveLog() {
         damping: 20,
         stiffness: 300,
       }}
-      className={`overflow-hidden w-full ${
-        isMobile
-          ? "fixed bottom-0 left-0 right-0 z-40 px-4 pb-4"
-          : "w-full self-end"
-      }`}
+        className={`overflow-hidden w-full self-end`}
     >
       <Card
         className="h-full border-border bg-card shadow-lg flex flex-col"
@@ -175,13 +143,11 @@ export function ResponsiveLog() {
       >
         <CardHeader
           className="pb-2 pt-3 px-4 shrink-0 border-b border-border cursor-pointer"
-          onClick={isMobile ? handleMobileToggle : undefined}
+          onClick={handleLogToggle}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {isMobile && (
-                <div className="w-8 h-0.5 bg-muted-foreground/30 rounded-full" />
-              )}
+              <div className="w-8 h-0.5 bg-muted-foreground/30 rounded-full" />
               <CardTitle className="text-sm font-semibold">
                 Live Event Log
               </CardTitle>
@@ -256,14 +222,13 @@ export function ResponsiveLog() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {isMobile && (
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-6 w-6 p-0 text-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleMobileToggle();
+                    handleLogToggle();
                   }}
                   aria-label={
                     panelSize === "min"
@@ -272,13 +237,8 @@ export function ResponsiveLog() {
                   }
                   title={panelSize === "min" ? "Expand" : "Collapse"}
                 >
-                  {panelSize === "min" ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
+                  <ChevronDown className={cn("h-4 w-4 transition-all duration-300", panelSize === "min" ? "rotate-180" : "")} />
                 </Button>
-              )}
             </div>
           </div>
         </CardHeader>
