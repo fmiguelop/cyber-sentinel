@@ -17,7 +17,7 @@ const BATCH_FLUSH_INTERVAL_MS = 75;
 
 const SIM_SPEED_MULTIPLIER = 1;
 
-const generateId = () => {
+export const generateId = () => {
   if (
     typeof crypto !== "undefined" &&
     typeof crypto.randomUUID === "function"

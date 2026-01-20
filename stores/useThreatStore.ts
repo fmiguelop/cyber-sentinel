@@ -3,10 +3,12 @@ import type {
   ThreatEvent,
   FilterState,
   ThreatStats,
+  Shockwave,
 } from "@/lib/types/threats";
 import { threatsToLineFeatureCollection } from "@/lib/threats/geojson";
 import { computeThreatStats } from "@/lib/threats/stats";
 import { compileFilters } from "@/lib/threats/filters";
+import { generateId } from "@/hooks/useThreatSimulation";
 const MAX_ACTIVE_THREATS = 3000;
 const MAX_LOGS = 1000;
 const defaultFilters: FilterState = {
@@ -55,6 +57,7 @@ interface ThreatStore {
   soundEnabled: boolean;
   hoveredThreatId: string | null;
   hoveredBatchId: string | null;
+  shockwaves: Shockwave[];
   addThreat: (threat: ThreatEvent) => void;
   addThreats: (threats: ThreatEvent[]) => void;
   toggleSimulation: () => void;
@@ -80,6 +83,7 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   mapFeatures: null,
   mapType: "globe",
   soundEnabled: true,
+  shockwaves: [],
   addThreat: (threat: ThreatEvent) => {
     get().addThreats([threat]);
   },
@@ -163,12 +167,67 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   },
   pruneExpired: () => {
     const now = Date.now();
+
     set((state) => {
-      const activeThreats = state.activeThreats.filter(
-        (threat) => threat.timestamp + threat.duration > now
+      const active = state.activeThreats;
+      const kept: typeof active = [];
+      const expired: typeof active = [];
+
+      active.forEach((t) => {
+        if (t.timestamp + t.duration > now) kept.push(t);
+        else expired.push(t);
+      });
+
+      const newShockwaves: Shockwave[] = [];
+      const processedTargets = new Set<string>();
+
+      expired.forEach((t) => {
+        const key = `${t.target.lat},${t.target.lng}`;
+        if (processedTargets.has(key)) return; // Deduplicate swarms
+        processedTargets.add(key);
+
+        const isSwarm = t.metadata?.isBotnet;
+        const color =
+          isSwarm || t.type === "DDoS"
+            ? "#d946ef"
+            : t.severity === "critical"
+            ? "#ef4444"
+            : t.severity === "medium"
+            ? "#eab308"
+            : "#22c55e";
+
+        const maxRadius = isSwarm ? 50 : 20;
+
+        newShockwaves.push({
+          id: generateId(),
+          lat: t.target.lat,
+          lng: t.target.lng,
+          color,
+          maxRadius,
+          startTime: now,
+        });
+      });
+
+      // 3. Cleanup OLD Shockwaves (older than 2s)
+      const existingShockwaves = state.shockwaves || []; // Safety fallback
+      const survivingShockwaves = existingShockwaves.filter(
+        (s) => now - s.startTime < 2000
       );
-      return { activeThreats };
+      
+      if (
+        kept.length === active.length &&
+        survivingShockwaves.length === existingShockwaves.length &&
+        newShockwaves.length === 0
+      ) {
+        return {};
+      }
+
+      return {
+        activeThreats: kept,
+        shockwaves: [...survivingShockwaves, ...newShockwaves],
+      };
     });
+
     get().updateMapFeatures();
   },
   updateMapFeatures: () => {

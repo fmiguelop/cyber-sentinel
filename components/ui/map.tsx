@@ -1209,42 +1209,32 @@ function MapLineLayer({
     const opacityExpression = isHovering
       ? [
           "case",
-          ...(hoveredBatchId 
-            ? [["==", ["get", "batchId"], safeBatchId], 1.0] 
+          ...(hoveredBatchId
+            ? [["==", ["get", "batchId"], safeBatchId], 1.0]
             : []),
-            
-          ...(hoveredThreatId 
-            ? [["==", ["get", "id"], safeThreatId], 1.0] 
-            : []), 0.5
+
+          ...(hoveredThreatId
+            ? [["==", ["get", "id"], safeThreatId], 1.0]
+            : []),
+          0.5,
         ]
-      : [
-          "case",
-          ["==", ["get", "type"], "DDoS"], 0.5,
-          opacity
-        ];
+      : ["case", ["==", ["get", "type"], "DDoS"], 0.5, opacity];
 
     const widthExpression = isHovering
       ? [
           "case",
-          ...(hoveredBatchId 
-            ? [["==", ["get", "batchId"], safeBatchId], 3] 
+          ...(hoveredBatchId
+            ? [["==", ["get", "batchId"], safeBatchId], 3]
             : []),
 
-          ...(hoveredThreatId 
-            ? [["==", ["get", "id"], safeThreatId], 4] 
-            : []),
+          ...(hoveredThreatId ? [["==", ["get", "id"], safeThreatId], 4] : []),
 
-          1 
+          1,
         ]
-      : [
-          "case",
-          ["==", ["get", "type"], "DDoS"], 1,
-          width
-        ];
+      : ["case", ["==", ["get", "type"], "DDoS"], 1, width];
 
     map.setPaintProperty(layerId, "line-opacity", opacityExpression);
     map.setPaintProperty(layerId, "line-width", widthExpression);
-
   }, [isLoaded, map, hoveredThreatId, hoveredBatchId, layerId, width, opacity]);
 
   useEffect(() => {

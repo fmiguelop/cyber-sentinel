@@ -45,3 +45,12 @@ export interface ThreatStats {
   topSourceRegion: City["region"] | null;
   topSourceCountry: string | null;
 }
+
+export interface Shockwave {
+  id: string;
+  lat: number;
+  lng: number;
+  color: string;
+  maxRadius: number;
+  startTime: number;
+}

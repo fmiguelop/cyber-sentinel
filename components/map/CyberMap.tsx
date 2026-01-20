@@ -8,6 +8,7 @@ import { threatsToPointFeatureCollection } from "@/lib/threats/geojson";
 import type { ThreatEvent } from "@/lib/types/threats";
 import type { ThreatPointFeatureProperties } from "@/lib/threats/geojson";
 import { WorldBordersLayer } from "./WorldBorderLayer";
+import { ShockwaveLayer } from "./ShockwaveLayer";
 
 const loadMapIcons = (map: MapLibreGL.Map) => {
   const icons = [
@@ -228,7 +229,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
 
       let swarmHtml = "";
       let title: string = threat.type;
-      
+
       if (threat.type === "DDoS" && threat.metadata?.batchId) {
         const swarmSize = threat.metadata?.swarmSize;
 
@@ -351,6 +352,7 @@ export function CyberMap() {
         zoom={1.5}
       >
         <WorldBordersLayer />
+        <ShockwaveLayer />
         {mapFeatures && mapFeatures.features.length > 0 && (
           <MapLineLayer data={mapFeatures} width={2} opacity={0.7} />
         )}
