@@ -18,11 +18,7 @@ export function KeyboardListener() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      )
-        return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       switch (e.key.toLowerCase()) {
         case "c":
@@ -59,7 +55,17 @@ export function KeyboardListener() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleAutoTrack, setSelectedCountry, map]);
+  }, [
+    toggleAutoTrack,
+    setSelectedCountry,
+    map,
+    clearAllFilters,
+    toggleSimulation,
+    setSpeed,
+    toggleSound,
+    toggleMapType,
+    resetSimulation,
+  ]);
 
   return null;
 }

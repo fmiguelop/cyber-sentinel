@@ -1,10 +1,5 @@
 import { create } from "zustand";
-import type {
-  ThreatEvent,
-  FilterState,
-  ThreatStats,
-  Shockwave,
-} from "@/lib/types/threats";
+import type { ThreatEvent, FilterState, ThreatStats, Shockwave } from "@/lib/types/threats";
 import { threatsToLineFeatureCollection } from "@/lib/threats/geojson";
 import { computeThreatStats } from "@/lib/threats/stats";
 import { compileFilters } from "@/lib/threats/filters";
@@ -97,10 +92,7 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
     if (threats.length === 0) return;
 
     set((state) => {
-      const newActiveThreats = [...threats, ...state.activeThreats].slice(
-        0,
-        MAX_ACTIVE_THREATS
-      );
+      const newActiveThreats = [...threats, ...state.activeThreats].slice(0, MAX_ACTIVE_THREATS);
 
       const seenBatches = new Set<string>();
 
@@ -215,9 +207,7 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
       });
 
       const existingShockwaves = state.shockwaves || [];
-      const survivingShockwaves = existingShockwaves.filter(
-        (s) => now - s.startTime < 2000
-      );
+      const survivingShockwaves = existingShockwaves.filter((s) => now - s.startTime < 2000);
 
       if (
         kept.length === active.length &&
@@ -260,8 +250,7 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   },
   hoveredThreatId: null,
   hoveredBatchId: null,
-  setHoveredThreat: (id, batchId) =>
-    set({ hoveredThreatId: id, hoveredBatchId: batchId }),
+  setHoveredThreat: (id, batchId) => set({ hoveredThreatId: id, hoveredBatchId: batchId }),
   toggleAutoTrack: () => {
     set((state) => ({
       autoTrackEnabled: !state.autoTrackEnabled,
@@ -290,10 +279,7 @@ let lastStatsFilteredLogs: ThreatEvent[] | null = null;
 let lastStatsFilteredResult: ThreatStats = defaultStats;
 
 export const selectFilteredLogs = (state: ThreatStore): ThreatEvent[] => {
-  if (
-    state.filters === lastFilteredLogsFilters &&
-    state.logs === lastFilteredLogsLogs
-  ) {
+  if (state.filters === lastFilteredLogsFilters && state.logs === lastFilteredLogsLogs) {
     return lastFilteredLogsResult;
   }
 
@@ -322,10 +308,7 @@ export const selectFilteredThreats = (state: ThreatStore): ThreatEvent[] => {
 };
 
 export const selectStatsFiltered = (state: ThreatStore): ThreatStats => {
-  if (
-    state.filters === lastStatsFilteredFilters &&
-    state.logs === lastStatsFilteredLogs
-  ) {
+  if (state.filters === lastStatsFilteredFilters && state.logs === lastStatsFilteredLogs) {
     return lastStatsFilteredResult;
   }
 
@@ -333,8 +316,6 @@ export const selectStatsFiltered = (state: ThreatStore): ThreatStats => {
   lastStatsFilteredLogs = state.logs;
 
   const compiledFilter = compileFilters(state.filters);
-  lastStatsFilteredResult = computeThreatStats(
-    state.logs.filter(compiledFilter)
-  );
+  lastStatsFilteredResult = computeThreatStats(state.logs.filter(compiledFilter));
   return lastStatsFilteredResult;
 };

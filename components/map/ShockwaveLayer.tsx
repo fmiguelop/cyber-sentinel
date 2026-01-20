@@ -68,7 +68,7 @@ export function ShockwaveLayer() {
       const source = map.getSource(sourceId) as MapLibreGL.GeoJSONSource;
       source.setData({
         type: "FeatureCollection",
-        features: features as any,
+        features: features as GeoJSON.Feature[],
       });
 
       animationRef.current = requestAnimationFrame(animate);

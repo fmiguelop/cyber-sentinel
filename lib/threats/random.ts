@@ -1,6 +1,5 @@
 import type { AttackType, Severity } from "@/lib/types/threats";
 export function getRandomSeverity(): Severity {
-  const severities: Severity[] = ["low", "medium", "critical"];
   const rand = Math.random();
   if (rand < 0.5) return "low";
   if (rand < 0.8) return "medium";

@@ -22,21 +22,16 @@ interface HudSectionTitleProps {
   id?: string;
 }
 
-export function HudSectionTitle({
-  icon: Icon,
-  children,
-  className,
-  id,
-}: HudSectionTitleProps) {
+export function HudSectionTitle({ icon: Icon, children, className, id }: HudSectionTitleProps) {
   return (
     <h3
       id={id}
       className={cn(
-        "font-mono uppercase text-xs tracking-widest text-gray-300 mb-3 flex items-center gap-2",
+        "mb-3 flex items-center gap-2 font-mono text-xs tracking-widest text-gray-300 uppercase",
         className
       )}
     >
-      {Icon && <Icon className="w-4 h-4" />}
+      {Icon && <Icon className="h-4 w-4" />}
       <span>{children}</span>
     </h3>
   );

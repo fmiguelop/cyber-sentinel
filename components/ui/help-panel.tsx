@@ -8,42 +8,37 @@ export function HelpPanel() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="absolute bottom-48 right-7 z-50 flex-col items-end gap-2 hidden lg:flex">
+    <div className="absolute right-7 bottom-48 z-50 hidden flex-col items-end gap-2 lg:flex">
       <div
         className={cn(
-          "w-80 bg-black/80 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 origin-bottom-right",
+          "w-80 origin-bottom-right overflow-hidden rounded-lg border border-white/10 bg-black/80 shadow-2xl backdrop-blur-md transition-all duration-300",
           isOpen
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-95 translate-y-4 pointer-events-none h-0"
+            ? "translate-y-0 scale-100 opacity-100"
+            : "pointer-events-none h-0 translate-y-4 scale-95 opacity-0"
         )}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
+        <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Keyboard className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-semibold tracking-wide text-white">
-              COMMAND CENTER
-            </span>
+            <Keyboard className="h-4 w-4 text-emerald-400" />
+            <span className="text-sm font-semibold tracking-wide text-white">COMMAND CENTER</span>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-muted-foreground hover:text-white transition-colors"
+            className="text-muted-foreground transition-colors hover:text-white"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="p-4 space-y-6 max-h-[70vh] overflow-y-auto">
+        <div className="max-h-[70vh] space-y-6 overflow-y-auto p-4">
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <h4 className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
               Threat Intelligence
             </h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <LegendItem color="bg-[#d946ef]" label="DDoS Swarm" glow />
               <LegendItem color="bg-red-500" label="Critical Attack" />
-              <LegendItem
-                color="bg-yellow-500"
-                label="Medium Severity Attack"
-              />
+              <LegendItem color="bg-yellow-500" label="Medium Severity Attack" />
               <LegendItem color="bg-green-500" label="Low Severity Attack" />
               <LegendItem color="bg-[#1e3b38]" label="Active Country" outline />
             </div>
@@ -52,7 +47,7 @@ export function HelpPanel() {
           <div className="h-px bg-white/10" />
 
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <h4 className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
               Keyboard Shortcuts
             </h4>
 
@@ -60,23 +55,19 @@ export function HelpPanel() {
               <Shortcut
                 keyLabel="C"
                 label="Toggle CCTV Mode"
-                icon={<Globe className="w-3 h-3" />}
+                icon={<Globe className="h-3 w-3" />}
               />
               <Shortcut keyLabel="ESC" label="Clear Filters / Reset Camera" />
               <Shortcut keyLabel="Z" label="Toggle Map Projection" />
-              <Shortcut
-                keyLabel="M"
-                label="Mute Audio"
-                icon={<Volume2 className="w-3 h-3" />}
-              />
+              <Shortcut keyLabel="M" label="Mute Audio" icon={<Volume2 className="h-3 w-3" />} />
             </div>
 
-            <div className="space-y-1.5 mt-2">
+            <div className="mt-2 space-y-1.5">
               <Shortcut keyLabel="SPACE" label="Pause / Resume" />
               <Shortcut keyLabel="V" label="Hard Reset Simulation" />
             </div>
 
-            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+            <div className="text-muted-foreground flex items-center justify-between pt-1 text-xs">
               <span>Speed Control</span>
               <div className="flex gap-1">
                 <Kbd>1</Kbd>
@@ -91,18 +82,14 @@ export function HelpPanel() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center justify-center w-10 h-10 rounded-full border shadow-lg transition-all hover:scale-105 active:scale-95",
+          "flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all hover:scale-105 active:scale-95",
           isOpen
-            ? "bg-emerald-500/20 border-emerald-500 text-emerald-400"
-            : "bg-black/40 border-white/20 text-muted-foreground hover:bg-white/10 hover:text-white"
+            ? "border-emerald-500 bg-emerald-500/20 text-emerald-400"
+            : "text-muted-foreground border-white/20 bg-black/40 hover:bg-white/10 hover:text-white"
         )}
         title="Keyboard Shortcuts & Legend"
       >
-        {isOpen ? (
-          <X className="w-5 h-5" />
-        ) : (
-          <HelpCircle className="w-5 h-5" />
-        )}
+        {isOpen ? <X className="h-5 w-5" /> : <HelpCircle className="h-5 w-5" />}
       </button>
     </div>
   );
@@ -123,10 +110,10 @@ function LegendItem({
     <div className="flex items-center gap-2">
       <div
         className={cn(
-          "w-2.5 h-2.5 rounded-full",
+          "h-2.5 w-2.5 rounded-full",
           color,
           glow && "animate-pulse shadow-[0_0_8px_currentColor]",
-          outline && "bg-transparent border border-current"
+          outline && "border border-current bg-transparent"
         )}
       />
       <span className="text-gray-300">{label}</span>
@@ -144,8 +131,8 @@ function Shortcut({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between group">
-      <span className="text-xs text-gray-400 flex items-center gap-1.5 group-hover:text-gray-200 transition-colors">
+    <div className="group flex items-center justify-between">
+      <span className="flex items-center gap-1.5 text-xs text-gray-400 transition-colors group-hover:text-gray-200">
         {icon}
         {label}
       </span>
@@ -156,7 +143,7 @@ function Shortcut({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border border-white/20 bg-white/5 px-1.5 font-mono text-[10px] font-medium text-gray-400 min-w-[20px] justify-center shadow-sm">
+    <kbd className="hidden h-5 min-w-[20px] items-center justify-center gap-1 rounded border border-white/20 bg-white/5 px-1.5 font-mono text-[10px] font-medium text-gray-400 shadow-sm sm:inline-flex">
       {children}
     </kbd>
   );

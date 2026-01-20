@@ -9,11 +9,8 @@ describe("stats utilities", () => {
     sourceCountry: string
   ): ThreatEvent => {
     const sourceCity =
-      CITIES.find(
-        (c) => c.region === sourceRegion && c.country === sourceCountry
-      ) || CITIES[0];
-    const targetCity =
-      CITIES.find((c) => c.name !== sourceCity.name) || CITIES[1];
+      CITIES.find((c) => c.region === sourceRegion && c.country === sourceCountry) || CITIES[0];
+    const targetCity = CITIES.find((c) => c.name !== sourceCity.name) || CITIES[1];
     return {
       id: `test-${Math.random()}`,
       timestamp: Date.now(),

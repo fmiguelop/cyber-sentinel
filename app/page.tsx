@@ -12,25 +12,19 @@ import dynamic from "next/dynamic";
 import { MobileSimulationUI } from "@/components/mobile-drawer";
 import { HelpPanel } from "@/components/ui/help-panel";
 
-const DefconSection = dynamic(
-  () => import("../components/dashboard/DefconSection"),
-  {
-    ssr: false,
-    loading: () => <p>Loading...</p>,
-  }
-);
+const DefconSection = dynamic(() => import("../components/dashboard/DefconSection"), {
+  ssr: false,
+  loading: () => <p>Loading...</p>,
+});
 
-const ControlPanel = dynamic(
-  () => import("../components/dashboard/ControlPanel"),
-  {
-    ssr: false,
-    loading: () => <p>Loading...</p>,
-  }
-);
+const ControlPanel = dynamic(() => import("../components/dashboard/ControlPanel"), {
+  ssr: false,
+  loading: () => <p>Loading...</p>,
+});
 
 function MobileHeader() {
   return (
-    <header className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-2 py-1 backdrop-blur-sm bg-background/95 w-fit rounded-br-lg">
+    <header className="bg-background/95 absolute top-0 right-0 left-0 z-40 flex w-fit items-center justify-between rounded-br-lg px-2 py-1 backdrop-blur-sm">
       <Image
         src="/assets/logo.svg"
         alt="CyberSentinel"
@@ -47,7 +41,7 @@ export default function Home() {
   useCriticalAlertSound();
   const { startTour } = useTour();
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-background">
+    <div className="bg-background relative h-screen w-screen overflow-hidden">
       <WelcomeModal onStartTour={startTour} />
 
       <div className="lg:hidden">
@@ -60,21 +54,21 @@ export default function Home() {
 
       <div
         id="defcon-panel"
-        className="hidden lg:block absolute left-6 top-6 z-10 w-[350px] max-h-[calc(100vh-3rem)] overflow-y-auto overflow-x-clip bg-zinc-950/80 backdrop-blur-md border border-zinc-800 isolate"
+        className="absolute top-6 left-6 isolate z-10 hidden max-h-[calc(100vh-3rem)] w-[350px] overflow-x-clip overflow-y-auto border border-zinc-800 bg-zinc-950/80 backdrop-blur-md lg:block"
       >
         <div className="p-6">
           <DefconSection />
         </div>
       </div>
 
-      <div className="hidden lg:block absolute right-6 top-6 z-10 w-[350px] max-h-[calc(100vh-3rem)] overflow-auto bg-zinc-950/80 backdrop-blur-md border border-zinc-800">
+      <div className="absolute top-6 right-6 z-10 hidden max-h-[calc(100vh-3rem)] w-[350px] overflow-auto border border-zinc-800 bg-zinc-950/80 backdrop-blur-md lg:block">
         <div className="p-4">
           <Logo />
         </div>
         <ControlPanel />
       </div>
 
-      <div className="hidden lg:block absolute left-6 right-6 bottom-6 z-10">
+      <div className="absolute right-6 bottom-6 left-6 z-10 hidden lg:block">
         <ResponsiveLog />
       </div>
 

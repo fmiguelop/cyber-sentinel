@@ -72,10 +72,7 @@ export function AutoTracker() {
       visitedThreats.current.add(candidate.id);
       lastMoveTime.current = now;
 
-      const target = [candidate.target.lng, candidate.target.lat] as [
-        number,
-        number,
-      ];
+      const target = [candidate.target.lng, candidate.target.lat] as [number, number];
 
       map.flyTo({
         center: target,

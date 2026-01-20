@@ -42,19 +42,14 @@ const loadMapIcons = (map: MapLibreGL.Map) => {
 export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
   const setHoveredThreat = useThreatStore((state) => state.setHoveredThreat);
   const { map, isLoaded } = useMap();
-  const pointFeatures = useMemo(
-    () => threatsToPointFeatureCollection(threats),
-    [threats]
-  );
+  const pointFeatures = useMemo(() => threatsToPointFeatureCollection(threats), [threats]);
 
   const sourceId = "threat-points";
   const circleLayerId = "threat-points-circle";
   const iconLayerId = "threat-points-icon";
   const glowLayerId = "threat-points-glow";
 
-  const threatsMapRef = useRef<globalThis.Map<string, ThreatEvent>>(
-    new globalThis.Map()
-  );
+  const threatsMapRef = useRef<globalThis.Map<string, ThreatEvent>>(new globalThis.Map());
   const popupRef = useRef<MapLibreGL.Popup | null>(null);
   const animationRef = useRef<number>(null);
 
@@ -78,9 +73,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, { type: "geojson", data: pointFeatures });
     } else {
-      (map.getSource(sourceId) as MapLibreGL.GeoJSONSource).setData(
-        pointFeatures
-      );
+      (map.getSource(sourceId) as MapLibreGL.GeoJSONSource).setData(pointFeatures);
     }
 
     // Add Glow (Animated Pulse)
@@ -104,11 +97,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
           "circle-opacity": 0,
           "circle-blur": 1,
         },
-        filter: [
-          "any",
-          ["==", ["get", "severity"], "critical"],
-          ["==", ["get", "type"], "DDoS"],
-        ],
+        filter: ["any", ["==", ["get", "severity"], "critical"], ["==", ["get", "type"], "DDoS"]],
       });
     }
 
@@ -188,15 +177,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [
-    isLoaded,
-    map,
-    pointFeatures,
-    sourceId,
-    glowLayerId,
-    circleLayerId,
-    iconLayerId,
-  ]);
+  }, [isLoaded, map, pointFeatures, sourceId, glowLayerId, circleLayerId, iconLayerId]);
 
   // Handle Popups
   useEffect(() => {
@@ -222,8 +203,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
       const batchId = threat.metadata?.batchId || null;
       setHoveredThreat(threat.id, batchId);
 
-      const point =
-        props.pointType === "source" ? threat.source : threat.target;
+      const point = props.pointType === "source" ? threat.source : threat.target;
 
       if (popupRef.current) {
         popupRef.current.remove();
@@ -330,7 +310,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
       map.off("mouseleave", iconLayerId, handleMouseLeave);
       if (popupRef.current) popupRef.current.remove();
     };
-  }, [isLoaded, map, circleLayerId, iconLayerId]); // Added dependencies
+  }, [isLoaded, map, circleLayerId, iconLayerId, setHoveredThreat]);
 
   return null;
 }
@@ -341,18 +321,9 @@ export function CyberMap() {
   const filteredThreats = useThreatStore(selectFilteredThreats);
 
   return (
-    <div
-      role="region"
-      aria-label="Threat Visualization Map"
-      className="h-full w-full relative"
-    >
+    <div role="region" aria-label="Threat Visualization Map" className="relative h-full w-full">
       <div className="bg-grid absolute inset-0" />
-      <Map
-        theme="dark"
-        projection={{ type: mapType }}
-        center={[0, 20]}
-        zoom={1.5}
-      >
+      <Map theme="dark" projection={{ type: mapType }} center={[0, 20]} zoom={1.5}>
         <KeyboardListener />
         <WorldBordersLayer />
         <ShockwaveLayer />

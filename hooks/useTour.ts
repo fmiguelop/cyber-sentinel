@@ -33,8 +33,7 @@ export function useTour() {
         element: "#simulation-controls",
         popover: {
           title: "Simulation Controls",
-          description:
-            "Control the flow of time. Pause or speed up the simulation.",
+          description: "Control the flow of time. Pause or speed up the simulation.",
           side: "left" as const,
           align: "start" as const,
         },
@@ -72,8 +71,7 @@ export function useTour() {
         element: "#auto-track-button",
         popover: {
           title: "Auto Tracking",
-          description:
-            "Toggle auto tracking of critical threats. Keep enabled to stay alert.",
+          description: "Toggle auto tracking of critical threats. Keep enabled to stay alert.",
           side: "left" as const,
           align: "start" as const,
         },
@@ -82,8 +80,7 @@ export function useTour() {
         element: "#event-log",
         popover: {
           title: "Event Log",
-          description:
-            "Real-time feed of detected events. Export logs to JSON/CSV here.",
+          description: "Real-time feed of detected events. Export logs to JSON/CSV here.",
           side: "top" as const,
           align: "start" as const,
         },

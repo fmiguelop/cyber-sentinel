@@ -95,11 +95,7 @@ describe("filter utilities", () => {
       expect(matchesFilters(oldThreat, filters)).toBe(false);
     });
     it("should match all threats when timeRange is 'all'", () => {
-      const veryOldThreat = createMockThreat(
-        "low",
-        "DDoS",
-        24 * 60 * 60 * 1000
-      );
+      const veryOldThreat = createMockThreat("low", "DDoS", 24 * 60 * 60 * 1000);
       const filters: FilterState = {
         ...defaultFilters,
         timeRange: "all",

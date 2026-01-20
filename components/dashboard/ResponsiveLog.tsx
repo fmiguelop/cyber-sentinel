@@ -7,13 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useThreatStore, selectFilteredLogs } from "@/stores/useThreatStore";
 import { severityToColorToken } from "@/lib/threats/random";
-import {
-  ChevronUp,
-  ChevronDown,
-  Download,
-  FileJson,
-  FileSpreadsheet,
-} from "lucide-react";
+import { ChevronDown, Download, FileJson, FileSpreadsheet } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logsToJson, logsToCsv, downloadTextFile } from "@/lib/threats/export";
 import { cn } from "@/lib/utils";
+import { useShallow } from "zustand/react/shallow";
 
 type LogPanelSize = "min" | "max";
 
@@ -35,7 +30,7 @@ const SIZE_ENTRY_LIMITS = {
 } as const;
 const STORAGE_KEY = "cybersentinel-log-panel-size";
 export function ResponsiveLog() {
-  const filteredLogs = useThreatStore(selectFilteredLogs);
+  const filteredLogs = useThreatStore(useShallow(selectFilteredLogs));
   const logs = useThreatStore((state) => state.logs);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -43,11 +38,7 @@ export function ResponsiveLog() {
   const handleExportFilteredJson = () => {
     const content = logsToJson(filteredLogs);
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    downloadTextFile(
-      `threats-filtered-${timestamp}.json`,
-      "application/json",
-      content
-    );
+    downloadTextFile(`threats-filtered-${timestamp}.json`, "application/json", content);
   };
   const handleExportFilteredCsv = () => {
     const content = logsToCsv(filteredLogs);
@@ -57,11 +48,7 @@ export function ResponsiveLog() {
   const handleExportFullJson = () => {
     const content = logsToJson(logs);
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    downloadTextFile(
-      `threats-full-${timestamp}.json`,
-      "application/json",
-      content
-    );
+    downloadTextFile(`threats-full-${timestamp}.json`, "application/json", content);
   };
   const handleExportFullCsv = () => {
     const content = logsToCsv(logs);
@@ -81,16 +68,12 @@ export function ResponsiveLog() {
     setPanelSize((current) => (current === "min" ? "max" : "min"));
   }, []);
   const previousCriticalIdsRef = useRef<Set<string>>(new Set());
-  const [criticalAnnouncements, setCriticalAnnouncements] = useState<string[]>(
-    []
-  );
+  const [criticalAnnouncements, setCriticalAnnouncements] = useState<string[]>([]);
 
   useEffect(() => {
     const newCriticalThreats = filteredLogs
       .filter(
-        (threat) =>
-          threat.severity === "critical" &&
-          !previousCriticalIdsRef.current.has(threat.id)
+        (threat) => threat.severity === "critical" && !previousCriticalIdsRef.current.has(threat.id)
       )
       .slice(0, 5);
     if (newCriticalThreats.length > 0) {
@@ -100,26 +83,24 @@ export function ResponsiveLog() {
         const announcement = `Critical ${threat.type} threat from ${threat.source.name} to ${threat.target.name}`;
         newAnnouncements.push(announcement);
       });
-      setCriticalAnnouncements((prev) => {
-        const updated = [...prev, ...newAnnouncements];
-        return updated.length > 10 ? updated.slice(-5) : updated;
-      });
+      setTimeout(() => {
+        setCriticalAnnouncements((prev) => {
+          const updated = [...prev, ...newAnnouncements];
+          return updated.length > 10 ? updated.slice(-5) : updated;
+        });
+      }, 0);
     }
   }, [filteredLogs]);
   useEffect(() => {
     if (panelSize === "max" && scrollAreaRef.current) {
-      const viewport = scrollAreaRef.current.querySelector(
-        "[data-radix-scroll-area-viewport]"
-      );
+      const viewport = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]");
       if (viewport) {
         viewport.scrollTop = 0;
       }
     }
   }, [filteredLogs.length, panelSize]);
   const displayedLogs =
-    panelSize === "max"
-      ? filteredLogs
-      : filteredLogs.slice(0, SIZE_ENTRY_LIMITS[panelSize]);
+    panelSize === "max" ? filteredLogs : filteredLogs.slice(0, SIZE_ENTRY_LIMITS[panelSize]);
   const heightValue = panelSize === "min" ? DESKTOP_HEIGHT : "60vh";
   return (
     <motion.div
@@ -132,24 +113,22 @@ export function ResponsiveLog() {
         damping: 20,
         stiffness: 300,
       }}
-      className={`overflow-hidden w-full self-end`}
+      className={`w-full self-end overflow-hidden`}
     >
       <Card
-        className="h-full border-border bg-card shadow-lg flex flex-col"
+        className="border-border bg-card flex h-full flex-col shadow-lg"
         role="region"
         aria-label="Live Event Log"
       >
         <CardHeader
-          className="pb-2 pt-3 px-4 shrink-0 border-b border-border cursor-pointer"
+          className="border-border shrink-0 cursor-pointer border-b px-4 pt-3 pb-2"
           onClick={handleLogToggle}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-0.5 bg-muted-foreground/30 rounded-full" />
-              <CardTitle className="text-sm font-semibold">
-                Live Event Log
-              </CardTitle>
-              <span className="text-xs text-muted-foreground font-mono">
+              <div className="bg-muted-foreground/30 h-0.5 w-8 rounded-full" />
+              <CardTitle className="text-sm font-semibold">Live Event Log</CardTitle>
+              <span className="text-muted-foreground font-mono text-xs">
                 ({filteredLogs.length} events)
               </span>
             </div>
@@ -160,7 +139,7 @@ export function ResponsiveLog() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 p-0 text-zinc-500 hover:text-emerald-500 focus-visible:ring-2 focus-visible:ring-ring"
+                    className="focus-visible:ring-ring h-6 w-6 p-0 text-zinc-500 hover:text-emerald-500 focus-visible:ring-2"
                     onClick={(e) => {
                       e.stopPropagation();
                     }}
@@ -178,9 +157,7 @@ export function ResponsiveLog() {
                   >
                     <FileJson className="h-4 w-4" />
                     Download as JSON
-                    <span className="ml-auto text-xs text-gray-400">
-                      {filteredLogs.length}
-                    </span>
+                    <span className="ml-auto text-xs text-gray-400">{filteredLogs.length}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={filteredLogs.length === 0}
@@ -189,9 +166,7 @@ export function ResponsiveLog() {
                   >
                     <FileSpreadsheet className="h-4 w-4" />
                     Download as CSV
-                    <span className="ml-auto text-xs text-gray-400">
-                      {filteredLogs.length}
-                    </span>
+                    <span className="ml-auto text-xs text-gray-400">{filteredLogs.length}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Full Dataset</DropdownMenuLabel>
@@ -202,9 +177,7 @@ export function ResponsiveLog() {
                   >
                     <FileJson className="h-4 w-4" />
                     Download as JSON
-                    <span className="ml-auto text-xs text-gray-400">
-                      {logs.length}
-                    </span>
+                    <span className="ml-auto text-xs text-gray-400">{logs.length}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     disabled={logs.length === 0}
@@ -213,9 +186,7 @@ export function ResponsiveLog() {
                   >
                     <FileSpreadsheet className="h-4 w-4" />
                     Download as CSV
-                    <span className="ml-auto text-xs text-gray-400">
-                      {logs.length}
-                    </span>
+                    <span className="ml-auto text-xs text-gray-400">{logs.length}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -223,16 +194,12 @@ export function ResponsiveLog() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 text-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+                className="hover:bg-muted focus-visible:ring-ring h-6 w-6 p-0 text-xs focus-visible:ring-2"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleLogToggle();
                 }}
-                aria-label={
-                  panelSize === "min"
-                    ? "Expand log panel"
-                    : "Collapse log panel"
-                }
+                aria-label={panelSize === "min" ? "Expand log panel" : "Collapse log panel"}
                 title={panelSize === "min" ? "Expand" : "Collapse"}
               >
                 <ChevronDown
@@ -251,12 +218,11 @@ export function ResponsiveLog() {
               <div key={idx}>{announcement}</div>
             ))}
           </div>
-          <ScrollArea className="h-full rounded border-t border-border bg-background p-2 font-mono text-xs">
+          <ScrollArea className="border-border bg-background h-full rounded border-t p-2 font-mono text-xs">
             <div ref={scrollAreaRef}>
               {displayedLogs.length === 0 ? (
                 <div className="text-muted-foreground">
-                  [SYSTEM] CyberSentinel initialized. Waiting for threat
-                  events...
+                  [SYSTEM] CyberSentinel initialized. Waiting for threat events...
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout" initial={false}>
@@ -268,29 +234,13 @@ export function ResponsiveLog() {
                     return (
                       <motion.div
                         key={log.id}
-                        initial={
-                          shouldReduceMotion
-                            ? { opacity: 1 }
-                            : { opacity: 0, y: -10 }
-                        }
-                        animate={
-                          shouldReduceMotion
-                            ? { opacity: 1 }
-                            : { opacity: 1, y: 0 }
-                        }
-                        exit={
-                          shouldReduceMotion
-                            ? { opacity: 1 }
-                            : { opacity: 0, height: 0 }
-                        }
-                        transition={
-                          shouldReduceMotion
-                            ? { duration: 0 }
-                            : { duration: 0.2 }
-                        }
+                        initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -10 }}
+                        animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                        exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, height: 0 }}
+                        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
                         className="mb-1"
                       >
-                        <div className="flex items-start gap-2 text-foreground">
+                        <div className="text-foreground flex items-start gap-2">
                           <span className="text-muted-foreground">
                             [{format(new Date(log.timestamp), "HH:mm:ss")}]
                           </span>
@@ -306,16 +256,11 @@ export function ResponsiveLog() {
                           >
                             [{log.severity.toUpperCase()}]
                           </span>
-                          <span>
-                            {log.metadata.isBotnet
-                              ? "DDoS Botnet Swarm"
-                              : log.type}
-                          </span>
+                          <span>{log.metadata.isBotnet ? "DDoS Botnet Swarm" : log.type}</span>
                           <span className="text-muted-foreground">from</span>
                           <span>
                             {log.source.name}{" "}
-                            {log.metadata.swarmSize &&
-                              `(+${log.metadata.swarmSize})`}
+                            {log.metadata.swarmSize && `(+${log.metadata.swarmSize})`}
                           </span>
                           <span className="text-muted-foreground">to</span>
                           <span>{log.target.name}</span>

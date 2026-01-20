@@ -1,10 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { HudSectionTitle } from "@/components/dashboard/hud";
 import {
   Activity,
-  ChevronsLeft,
   ChevronRight,
   ChevronsRight,
   Filter,
@@ -29,12 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +36,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useThreatStore } from "@/stores/useThreatStore";
 import type { Severity, AttackType, TimeRange } from "@/lib/types/threats";
-import { useMediaQuery } from "@uidotdev/usehooks";
 import { cn } from "@/lib/utils";
 
 const SPEED_OPTIONS = [
@@ -119,15 +112,15 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
         <TooltipProvider>
           <div
             id="simulation-controls"
-            className="flex items-center gap-1 bg-zinc-900/50 p-1 border border-zinc-800 rounded-sm h-10"
+            className="flex h-10 items-center gap-1 rounded-sm border border-zinc-800 bg-zinc-900/50 p-1"
           >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
                   variant="ghost"
-                  className={`h-8 w-8 rounded-none hover:text-red-500 focus-visible:ring-2 focus-visible:ring-ring ${
-                    totalEvents === 0 ? "opacity-50 cursor-not-allowed" : ""
+                  className={`focus-visible:ring-ring h-8 w-8 rounded-none hover:text-red-500 focus-visible:ring-2 ${
+                    totalEvents === 0 ? "cursor-not-allowed opacity-50" : ""
                   }`}
                   disabled={totalEvents === 0}
                   onClick={() => setShowResetDialog(true)}
@@ -149,18 +142,14 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                   size="icon"
                   variant="ghost"
                   className={cn(
-                    "h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "focus-visible:ring-ring h-8 w-8 rounded-none focus-visible:ring-2",
                     isLive ? "text-emerald-500" : "",
                     !isLive && totalEvents > 0 ? "text-emerald-500" : ""
                   )}
                   onClick={toggleSimulation}
                   aria-label={isLive ? "Pause simulation" : "Start simulation"}
                 >
-                  {isLive ? (
-                    <Pause className="h-4 w-4" />
-                  ) : (
-                    <Play className="h-4 w-4" />
-                  )}
+                  {isLive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -170,18 +159,14 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <div
-                  className={`flex items-center gap-0 ${origin === "header" ? "hidden" : ""}`}
-                >
+                <div className={`flex items-center gap-0 ${origin === "header" ? "hidden" : ""}`}>
                   {SPEED_OPTIONS.map(({ value, icon: Icon, label }) => (
                     <Button
                       key={value}
                       size="icon"
                       variant="ghost"
-                      className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
-                        speed === value && isLive
-                          ? "bg-emerald-500/20 text-emerald-500"
-                          : ""
+                      className={`focus-visible:ring-ring h-8 w-8 rounded-none focus-visible:ring-2 ${
+                        speed === value && isLive ? "bg-emerald-500/20 text-emerald-500" : ""
                       }`}
                       onClick={() => handleSpeedChange(value)}
                       aria-label={`Set speed to ${label}`}
@@ -206,7 +191,7 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="focus-visible:ring-ring h-8 w-8 rounded-none focus-visible:ring-2"
                         aria-label="Open filters"
                       >
                         <Filter className="h-4 w-4" />
@@ -214,20 +199,20 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="bg-zinc-950/95 backdrop-blur-md border border-zinc-800 p-3 w-80 text-xs"
+                      className="w-80 border border-zinc-800 bg-zinc-950/95 p-3 text-xs backdrop-blur-md"
                     >
                       <div className="space-y-3">
                         <div className="space-y-2">
-                          <p className="font-mono uppercase tracking-widest text-[10px] text-zinc-400 mb-2">
+                          <p className="mb-2 font-mono text-[10px] tracking-widest text-zinc-400 uppercase">
                             Severity
                           </p>
                           <div className="flex flex-wrap gap-2" role="group">
                             <Button
                               variant="outline"
                               size="sm"
-                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                              className={`focus-visible:ring-ring h-6 rounded-none text-xs focus-visible:ring-2 ${
                                 filters.severity.low
-                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
                                   : ""
                               }`}
                               onClick={() => toggleSeverity("low")}
@@ -238,9 +223,9 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                             <Button
                               variant="outline"
                               size="sm"
-                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                              className={`focus-visible:ring-ring h-6 rounded-none text-xs focus-visible:ring-2 ${
                                 filters.severity.medium
-                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
                                   : ""
                               }`}
                               onClick={() => toggleSeverity("medium")}
@@ -251,9 +236,9 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                             <Button
                               variant="outline"
                               size="sm"
-                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                              className={`focus-visible:ring-ring h-6 rounded-none text-xs focus-visible:ring-2 ${
                                 filters.severity.critical
-                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
                                   : ""
                               }`}
                               onClick={() => toggleSeverity("critical")}
@@ -265,16 +250,16 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                         </div>
 
                         <div className="space-y-2">
-                          <p className="font-mono uppercase tracking-widest text-[10px] text-zinc-400 mb-2">
+                          <p className="mb-2 font-mono text-[10px] tracking-widest text-zinc-400 uppercase">
                             Attack Types
                           </p>
                           <div className="flex flex-wrap gap-2" role="group">
                             <Button
                               variant="outline"
                               size="sm"
-                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                              className={`focus-visible:ring-ring h-6 rounded-none text-xs focus-visible:ring-2 ${
                                 filters.attackType.DDoS
-                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
                                   : ""
                               }`}
                               onClick={() => toggleAttackType("DDoS")}
@@ -285,9 +270,9 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                             <Button
                               variant="outline"
                               size="sm"
-                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                              className={`focus-visible:ring-ring h-6 rounded-none text-xs focus-visible:ring-2 ${
                                 filters.attackType.Phishing
-                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
                                   : ""
                               }`}
                               onClick={() => toggleAttackType("Phishing")}
@@ -298,9 +283,9 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                             <Button
                               variant="outline"
                               size="sm"
-                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                              className={`focus-visible:ring-ring h-6 rounded-none text-xs focus-visible:ring-2 ${
                                 filters.attackType.Malware
-                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
                                   : ""
                               }`}
                               onClick={() => toggleAttackType("Malware")}
@@ -311,9 +296,9 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                             <Button
                               variant="outline"
                               size="sm"
-                              className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                              className={`focus-visible:ring-ring h-6 rounded-none text-xs focus-visible:ring-2 ${
                                 filters.attackType.BruteForce
-                                  ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                  ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
                                   : ""
                               }`}
                               onClick={() => toggleAttackType("BruteForce")}
@@ -325,20 +310,18 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                         </div>
 
                         <div className="space-y-2">
-                          <p className="font-mono uppercase tracking-widest text-[10px] text-zinc-400 mb-2">
+                          <p className="mb-2 font-mono text-[10px] tracking-widest text-zinc-400 uppercase">
                             Time Range
                           </p>
                           <div className="flex flex-wrap gap-2" role="group">
-                            {(
-                              ["1min", "5min", "1hr", "all"] as TimeRange[]
-                            ).map((range) => (
+                            {(["1min", "5min", "1hr", "all"] as TimeRange[]).map((range) => (
                               <Button
                                 key={range}
                                 variant="outline"
                                 size="sm"
-                                className={`h-6 text-xs rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                className={`focus-visible:ring-ring h-6 rounded-none text-xs focus-visible:ring-2 ${
                                   filters.timeRange === range
-                                    ? "border-emerald-500 text-emerald-500 bg-emerald-500/10"
+                                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
                                     : ""
                                 }`}
                                 onClick={() => setTimeRange(range)}
@@ -365,15 +348,11 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                   id="map-view-button"
                   size="icon"
                   variant="ghost"
-                  className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  className={`focus-visible:ring-ring h-8 w-8 rounded-none focus-visible:ring-2 ${
                     mapType === "flat" ? "text-emerald-500" : ""
                   }`}
                   onClick={toggleMapType}
-                  aria-label={
-                    mapType === "globe"
-                      ? "Switch to flat map"
-                      : "Switch to globe view"
-                  }
+                  aria-label={mapType === "globe" ? "Switch to flat map" : "Switch to globe view"}
                 >
                   {mapType === "globe" ? (
                     <MapIcon className="h-4 w-4" />
@@ -395,21 +374,13 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                   id="sound-button"
                   size="icon"
                   variant="ghost"
-                  className={`h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  className={`focus-visible:ring-ring h-8 w-8 rounded-none focus-visible:ring-2 ${
                     soundEnabled ? "text-emerald-500" : ""
                   }`}
                   onClick={toggleSound}
-                  aria-label={
-                    soundEnabled
-                      ? "Disable sound alerts"
-                      : "Enable sound alerts"
-                  }
+                  aria-label={soundEnabled ? "Disable sound alerts" : "Enable sound alerts"}
                 >
-                  {soundEnabled ? (
-                    <Volume2 className="h-4 w-4" />
-                  ) : (
-                    <VolumeX className="h-4 w-4" />
-                  )}
+                  {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -423,15 +394,11 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                   size="icon"
                   variant="ghost"
                   className={cn(
-                    "h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "focus-visible:ring-ring h-8 w-8 rounded-none focus-visible:ring-2",
                     autoTrackEnabled ? "text-emerald-500" : ""
                   )}
                   onClick={toggleAutoTrack}
-                  aria-label={
-                    autoTrackEnabled
-                      ? "Disable auto tracking"
-                      : "Enable auto tracking"
-                  }
+                  aria-label={autoTrackEnabled ? "Disable auto tracking" : "Enable auto tracking"}
                 >
                   {autoTrackEnabled ? (
                     <Video className="h-4 w-4" />
@@ -453,8 +420,8 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Stop Simulation?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will stop the simulation and clear all {totalEvents} threat
-              events. This action cannot be undone.
+              This will stop the simulation and clear all {totalEvents} threat events. This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

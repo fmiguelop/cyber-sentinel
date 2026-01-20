@@ -27,16 +27,26 @@ export function WelcomeModal({ onStartTour }: WelcomeModalProps) {
       setIsDesktop(window.innerWidth >= DESKTOP_BREAKPOINT);
     };
 
-    checkScreenSize();
+    const timer = setTimeout(() => {
+      checkScreenSize();
+    }, 0);
+
     window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", checkScreenSize);
+    };
   }, []);
 
   useEffect(() => {
     try {
       const hasSeenOnboarding = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+
       if (hasSeenOnboarding === null) {
-        setOpen(true);
+        setTimeout(() => {
+          setOpen(true);
+        }, 0);
       }
     } catch (error) {
       console.warn("Failed to check onboarding status:", error);
@@ -66,54 +76,52 @@ export function WelcomeModal({ onStartTour }: WelcomeModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Welcome to CyberSentinel</DialogTitle>
           {isDesktop ? (
             <DialogDescription>
-              This is a real-time threat intelligence dashboard visualizing
-              simulated cyber attacks globally.
+              This is a real-time threat intelligence dashboard visualizing simulated cyber attacks
+              globally.
             </DialogDescription>
           ) : (
-            <div className="text-sm text-muted-foreground space-y-4">
+            <div className="text-muted-foreground space-y-4 text-sm">
               <p>
-                This is a real-time threat intelligence dashboard visualizing
-                simulated cyber attacks globally.
+                This is a real-time threat intelligence dashboard visualizing simulated cyber
+                attacks globally.
               </p>
               <div className="space-y-3 text-left">
                 <div>
-                  <p className="font-semibold mb-1">Global Threat Status</p>
-                  <p className="text-xs text-muted-foreground">
-                    Monitor threat levels and metrics in the left panel. Tap the
-                    menu icon to access controls.
+                  <p className="mb-1 font-semibold">Global Threat Status</p>
+                  <p className="text-muted-foreground text-xs">
+                    Monitor threat levels and metrics in the left panel. Tap the menu icon to access
+                    controls.
                   </p>
                 </div>
                 <div>
-                  <p className="font-semibold mb-1">Simulation Controls</p>
-                  <p className="text-xs text-muted-foreground">
-                    Control simulation speed, pause, reset, and filter threats
-                    by type or severity.
+                  <p className="mb-1 font-semibold">Simulation Controls</p>
+                  <p className="text-muted-foreground text-xs">
+                    Control simulation speed, pause, reset, and filter threats by type or severity.
                   </p>
                 </div>
                 <div>
-                  <p className="font-semibold mb-1">Interactive Map</p>
-                  <p className="text-xs text-muted-foreground">
-                    View threat visualizations on the map. Tap attack lines or
-                    city nodes for details.
+                  <p className="mb-1 font-semibold">Interactive Map</p>
+                  <p className="text-muted-foreground text-xs">
+                    View threat visualizations on the map. Tap attack lines or city nodes for
+                    details.
                   </p>
                 </div>
                 <div>
-                  <p className="font-semibold mb-1">Event Log</p>
-                  <p className="text-xs text-muted-foreground">
-                    Real-time feed of detected events at the bottom. Export logs
-                    to JSON/CSV.
+                  <p className="mb-1 font-semibold">Event Log</p>
+                  <p className="text-muted-foreground text-xs">
+                    Real-time feed of detected events at the bottom. Export logs to JSON/CSV.
                   </p>
                 </div>
               </div>
             </div>
           )}
         </DialogHeader>
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
           {isDesktop ? (
             <>
               <Button variant="outline" onClick={handleClose}>

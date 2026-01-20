@@ -9,9 +9,7 @@ export function WorldBordersLayer() {
   const { map, isLoaded } = useMap();
   const selectedCountry = useThreatStore((state) => state.selectedCountry);
   const sourceId = "world-land";
-  const setSelectedCountry = useThreatStore(
-    (state) => state.setSelectedCountry
-  );
+  const setSelectedCountry = useThreatStore((state) => state.setSelectedCountry);
   const fillLayerId = "world-land-fill";
 
   useEffect(() => {
@@ -86,8 +84,7 @@ export function WorldBordersLayer() {
       });
 
       if (features.length) {
-        const countryName =
-          features[0].properties?.NAME || features[0].properties?.name;
+        const countryName = features[0].properties?.NAME || features[0].properties?.name;
         if (countryName && isValidSimulationCountry(countryName)) {
           map.getCanvas().style.cursor = "pointer";
           return;
@@ -107,7 +104,7 @@ export function WorldBordersLayer() {
       if (map.getLayer(fillLayerId)) map.removeLayer(fillLayerId);
       if (map.getSource(sourceId)) map.removeSource(sourceId);
     };
-  }, [isLoaded, map]);
+  }, [isLoaded, map, fillLayerId, sourceId, setSelectedCountry]);
 
   useEffect(() => {
     if (!isLoaded || !map) return;
@@ -118,11 +115,7 @@ export function WorldBordersLayer() {
 
     map.setPaintProperty(fillLayerId, "fill-color", [
       "case",
-      [
-        "any",
-        ["==", ["get", "NAME"], safeCountry],
-        ["==", ["get", "name"], safeCountry],
-      ],
+      ["any", ["==", ["get", "NAME"], safeCountry], ["==", ["get", "name"], safeCountry]],
       "#3bf6c1",
       "#1e3b35",
     ]);
@@ -132,11 +125,7 @@ export function WorldBordersLayer() {
       hasSelection,
       [
         "case",
-        [
-          "any",
-          ["==", ["get", "NAME"], safeCountry],
-          ["==", ["get", "name"], safeCountry],
-        ],
+        ["any", ["==", ["get", "NAME"], safeCountry], ["==", ["get", "name"], safeCountry]],
         0.3,
         0.2,
       ],

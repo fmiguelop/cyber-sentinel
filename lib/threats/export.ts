@@ -44,11 +44,7 @@ export function logsToCsv(logs: ThreatEvent[]): string {
   });
   return [headers.join(","), ...rows].join("\n");
 }
-export function downloadTextFile(
-  filename: string,
-  mimeType: string,
-  content: string
-): void {
+export function downloadTextFile(filename: string, mimeType: string, content: string): void {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

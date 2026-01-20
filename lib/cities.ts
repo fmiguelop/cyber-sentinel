@@ -2823,9 +2823,7 @@ export function toCountryCode(country: string | null): string {
   return map[country] ?? country;
 }
 
-export const ACTIVE_COUNTRIES = new Set(
-  CITIES.map((c) => c.country.toLowerCase())
-);
+export const ACTIVE_COUNTRIES = new Set(CITIES.map((c) => c.country.toLowerCase()));
 
 export function isValidSimulationCountry(mapCountryName: string): boolean {
   if (!mapCountryName) return false;
@@ -2834,10 +2832,8 @@ export function isValidSimulationCountry(mapCountryName: string): boolean {
 
   if (ACTIVE_COUNTRIES.has(normalized)) return true;
 
-  if (normalized === "united states" && ACTIVE_COUNTRIES.has("usa"))
-    return true;
-  if (normalized === "south korea" && ACTIVE_COUNTRIES.has("south korea"))
-    return true;
+  if (normalized === "united states" && ACTIVE_COUNTRIES.has("usa")) return true;
+  if (normalized === "south korea" && ACTIVE_COUNTRIES.has("south korea")) return true;
 
   return false;
 }

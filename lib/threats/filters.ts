@@ -11,8 +11,7 @@ export type CompiledFilter = (threat: ThreatEvent) => boolean;
 
 export function compileFilters(filters: FilterState): CompiledFilter {
   const now = Date.now();
-  const cutoffTimestamp =
-    filters.timeRange === "all" ? 0 : now - TIME_RANGE_MS[filters.timeRange];
+  const cutoffTimestamp = filters.timeRange === "all" ? 0 : now - TIME_RANGE_MS[filters.timeRange];
 
   return (threat: ThreatEvent) => {
     if (!filters.severity[threat.severity]) {
@@ -28,10 +27,7 @@ export function compileFilters(filters: FilterState): CompiledFilter {
   };
 }
 
-export function matchesFilters(
-  threat: ThreatEvent,
-  filters: FilterState
-): boolean {
+export function matchesFilters(threat: ThreatEvent, filters: FilterState): boolean {
   if (!filters.severity[threat.severity]) {
     return false;
   }

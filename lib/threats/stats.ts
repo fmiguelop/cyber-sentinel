@@ -34,21 +34,15 @@ export function computeThreatStats(threats: ThreatEvent[]): ThreatStats {
     byRegion[threat.source.region]++;
     sourceCountryCounts[threat.source.country] =
       (sourceCountryCounts[threat.source.country] || 0) + 1;
-    sourceRegionCounts[threat.source.region] =
-      (sourceRegionCounts[threat.source.region] || 0) + 1;
+    sourceRegionCounts[threat.source.region] = (sourceRegionCounts[threat.source.region] || 0) + 1;
 
-    if (
-      threat.severity === "critical" &&
-      threat.timestamp + threat.duration > now
-    ) {
+    if (threat.severity === "critical" && threat.timestamp + threat.duration > now) {
       activeCritical++;
     }
   });
   const topSourceCountry =
     Object.keys(sourceCountryCounts).length > 0
-      ? Object.entries(sourceCountryCounts).reduce((a, b) =>
-          a[1] > b[1] ? a : b
-        )[0]
+      ? Object.entries(sourceCountryCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0]
       : null;
   const topSourceRegion =
     Object.keys(sourceRegionCounts).length > 0 &&

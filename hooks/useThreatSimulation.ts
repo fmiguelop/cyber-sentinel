@@ -1,11 +1,7 @@
 import { useEffect, useRef } from "react";
 import { faker } from "@faker-js/faker";
 import { getRandomCity, getRandomTarget } from "@/lib/cities";
-import {
-  getRandomSeverity,
-  getRandomAttackType,
-  getRandomDurationMs,
-} from "@/lib/threats/random";
+import { getRandomSeverity, getRandomAttackType, getRandomDurationMs } from "@/lib/threats/random";
 
 import type { ThreatEvent } from "@/lib/types/threats";
 import { useThreatStore } from "@/stores/useThreatStore";
@@ -18,10 +14,7 @@ const BATCH_FLUSH_INTERVAL_MS = 75;
 const SIM_SPEED_MULTIPLIER = 1;
 
 export const generateId = () => {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
   return faker.string.uuid();
@@ -29,8 +22,7 @@ export const generateId = () => {
 
 function getRandomDelay(speed: number): number {
   const baseDelay =
-    Math.random() * (GENERATION_DELAY_MAX_MS - GENERATION_DELAY_MIN_MS) +
-    GENERATION_DELAY_MIN_MS;
+    Math.random() * (GENERATION_DELAY_MAX_MS - GENERATION_DELAY_MIN_MS) + GENERATION_DELAY_MIN_MS;
   return (baseDelay * SIM_SPEED_MULTIPLIER) / speed;
 }
 
@@ -96,12 +88,8 @@ export function useThreatSimulation() {
   const speed = useThreatStore((state) => state.speed);
   const addThreats = useThreatStore((state) => state.addThreats);
   const pruneExpired = useThreatStore((state) => state.pruneExpired);
-  const generationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
-  const expirationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null
-  );
+  const generationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const expirationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const batchIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const threatBufferRef = useRef<ThreatEvent[]>([]);
 

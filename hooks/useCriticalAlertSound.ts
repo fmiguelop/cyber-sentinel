@@ -4,7 +4,6 @@
 
 import { useEffect, useRef } from "react";
 import { useThreatStore } from "@/stores/useThreatStore";
-import type { ThreatEvent } from "@/lib/types/threats";
 
 // Singleton AudioContext for reuse
 let audioContext: AudioContext | null = null;
@@ -18,7 +17,8 @@ function getAudioContext(): AudioContext | null {
   }
   try {
     audioContext = new (
-      window.AudioContext || (window as any).webkitAudioContext
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: AudioContext }).webkitAudioContext
     )();
     return audioContext;
   } catch (error) {
@@ -73,18 +73,14 @@ function playSwarmSound(ctx: AudioContext) {
 }
 
 const RATE_LIMIT_MS = 300;
-let lastBeepTime = 0;
 let lastSoundTime = 0;
-let pendingThreats = 0;
 
 export function useCriticalAlertSound() {
   const logs = useThreatStore((state) => state.logs);
   const soundEnabled = useThreatStore((state) => state.soundEnabled);
   const previousLogsLengthRef = useRef(0);
   const previousThreatIdsRef = useRef<Set<string>>(new Set());
-  const rateLimitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
+  const rateLimitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingAudioRef = useRef<{
     hasCritical: boolean;
     hasSwarm: boolean;
@@ -113,10 +109,7 @@ export function useCriticalAlertSound() {
     }
 
     if (logs.length > previousLogsLengthRef.current) {
-      const newLogs = logs.slice(
-        0,
-        logs.length - previousLogsLengthRef.current
-      );
+      const newLogs = logs.slice(0, logs.length - previousLogsLengthRef.current);
 
       let foundCritical = false;
       let foundSwarm = false;
@@ -133,17 +126,14 @@ export function useCriticalAlertSound() {
       });
 
       if (foundSwarm || foundCritical) {
-        pendingAudioRef.current.hasSwarm =
-          pendingAudioRef.current.hasSwarm || foundSwarm;
-        pendingAudioRef.current.hasCritical =
-          pendingAudioRef.current.hasCritical || foundCritical;
+        pendingAudioRef.current.hasSwarm = pendingAudioRef.current.hasSwarm || foundSwarm;
+        pendingAudioRef.current.hasCritical = pendingAudioRef.current.hasCritical || foundCritical;
 
         const now = Date.now();
         const timeSinceLast = now - lastSoundTime;
 
         if (timeSinceLast >= RATE_LIMIT_MS) {
-          if (rateLimitTimeoutRef.current)
-            clearTimeout(rateLimitTimeoutRef.current);
+          if (rateLimitTimeoutRef.current) clearTimeout(rateLimitTimeoutRef.current);
           executeSound();
         } else {
           if (!rateLimitTimeoutRef.current) {
