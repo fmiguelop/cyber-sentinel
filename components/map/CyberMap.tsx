@@ -37,6 +37,7 @@ const loadMapIcons = (map: MapLibreGL.Map) => {
 };
 
 export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
+  const setHoveredThreat = useThreatStore((state) => state.setHoveredThreat);
   const { map, isLoaded } = useMap();
   const pointFeatures = useMemo(
     () => threatsToPointFeatureCollection(threats),
@@ -86,12 +87,25 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
         type: "circle",
         source: sourceId,
         paint: {
-          "circle-color": "#ef4444",
+          "circle-color": [
+            "case",
+            ["==", ["get", "type"], "DDoS"],
+            "#d946ef",
+            ["==", ["get", "severity"], "critical"],
+            "#ef4444",
+            ["==", ["get", "severity"], "medium"],
+            "#eab308",
+            "#22c55e",
+          ],
           "circle-radius": 15,
           "circle-opacity": 0,
           "circle-blur": 1,
         },
-        filter: ["==", ["get", "severity"], "critical"],
+        filter: [
+          "any",
+          ["==", ["get", "severity"], "critical"],
+          ["==", ["get", "type"], "DDoS"],
+        ],
       });
     }
 
@@ -107,6 +121,8 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
           "circle-stroke-width": 2,
           "circle-stroke-color": [
             "case",
+            ["==", ["get", "type"], "DDoS"],
+            "#d946ef",
             ["==", ["get", "severity"], "critical"],
             "#ef4444",
             ["==", ["get", "severity"], "medium"],
@@ -136,6 +152,8 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
         paint: {
           "icon-color": [
             "case",
+            ["==", ["get", "type"], "DDoS"],
+            "#d946ef",
             ["==", ["get", "severity"], "critical"],
             "#ef4444",
             ["==", ["get", "severity"], "medium"],
@@ -183,6 +201,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
 
     const handleMouseEnter = (e: MapLibreGL.MapMouseEvent) => {
       // Query both the Circle AND the Icon layer
+
       const features = map.queryRenderedFeatures(e.point, {
         layers: [circleLayerId, iconLayerId],
       });
@@ -197,6 +216,9 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
 
       if (!threat) return;
 
+      const batchId = threat.metadata?.batchId || null;
+      setHoveredThreat(threat.id, batchId);
+
       const point =
         props.pointType === "source" ? threat.source : threat.target;
 
@@ -204,12 +226,38 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
         popupRef.current.remove();
       }
 
+      let swarmHtml = "";
+      let title: string = threat.type;
+      
+      if (threat.type === "DDoS" && threat.metadata?.batchId) {
+        const swarmSize = threat.metadata?.swarmSize;
+
+        title = "DDoS SWARM";
+
+        swarmHtml = `
+          <div class="flex justify-between items-center text-[10px] bg-white/5 mx-[-8px] px-2 py-1 mb-2 border-y border-white/10">
+             <span class="text-muted-foreground">ATTACK SIZE</span>
+             <span class="font-mono text-purple-400 font-bold">${swarmSize} BOTS</span>
+          </div>
+          <div class="flex justify-between items-center text-[10px] bg-white/5 mx-[-8px] px-2 py-1 mb-2 border-y border-white/10">
+             <span class="text-muted-foreground">PACKETS</span>
+             <span class="font-mono text-purple-400 font-bold">${threat.metadata.packetCount} PACKETS</span>
+          </div>
+          <div class="flex justify-between items-center text-[10px] bg-white/5 mx-[-8px] px-2 py-1 mb-2 border-y border-white/10">
+             <span class="text-muted-foreground">PAYLOAD SIZE</span>
+             <span class="font-mono text-purple-400 font-bold">${threat.metadata.payloadSize} BYTES</span>
+          </div>
+        `;
+      }
+
       const severityColor =
-        threat.severity === "critical"
-          ? "#ef4444"
-          : threat.severity === "medium"
-            ? "#eab308"
-            : "#22c55e";
+        threat.type === "DDoS"
+          ? "#d946ef"
+          : threat.severity === "critical"
+            ? "#ef4444"
+            : threat.severity === "medium"
+              ? "#eab308"
+              : "#22c55e";
 
       const popupContent = document.createElement("div");
       popupContent.className =
@@ -217,23 +265,29 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
       popupContent.style.border = `1px solid ${severityColor}`;
 
       popupContent.innerHTML = `
-        <div class="flex justify-between items-center mb-1.5 border-b border-border/50 pb-1">
-          <span class="font-semibold truncate pr-2">${threat.type}</span>
+        <div class="flex justify-between items-center mb-2 border-b border-border/50 pb-1">
+          <span class="font-bold tracking-wider truncate pr-2">${title.toUpperCase()}</span>
           <span style="color: ${severityColor};" class="font-mono font-bold text-[10px] px-1.5 rounded bg-transparent">
             ${threat.severity.toUpperCase()}
           </span>
         </div>
-        <div class="flex items-center justify-between gap-1 mb-1.5 text-foreground">
+
+        ${swarmHtml} <div class="flex items-center justify-between gap-1 mb-2 text-foreground">
           <div class="flex-1 min-w-0 text-right">
-            <div class="truncate font-medium">${threat.source.name}</div>
+            <div class="truncate font-medium">
+              ${threat.metadata?.isBotnet ? "Botnet Node" : threat.source.name}
+            </div>
             <div class="text-[10px] text-muted-foreground truncate">${threat.source.country}</div>
           </div>
+
           <div class="text-muted-foreground px-1">→</div>
+
           <div class="flex-1 min-w-0 text-left">
             <div class="truncate font-medium">${threat.target.name}</div>
             <div class="text-[10px] text-muted-foreground truncate">${threat.target.country}</div>
           </div>
         </div>
+
         <div class="flex justify-between items-center text-[10px] text-muted-foreground font-mono bg-muted/30 -mx-2 -mb-2 px-2 py-1 mt-1">
           <span>${threat.metadata.ipAddress}</span>
           <span>${format(new Date(threat.timestamp), "HH:mm:ss")}</span>
@@ -254,6 +308,7 @@ export function ThreatPointLayer({ threats }: { threats: ThreatEvent[] }) {
 
     const handleMouseLeave = () => {
       map.getCanvas().style.cursor = "";
+      setHoveredThreat(null, null);
       if (popupRef.current) {
         popupRef.current.remove();
         popupRef.current = null;

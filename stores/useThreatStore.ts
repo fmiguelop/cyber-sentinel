@@ -53,6 +53,8 @@ interface ThreatStore {
   mapFeatures: GeoJSON.FeatureCollection<GeoJSON.LineString> | null;
   mapType: "globe" | "flat";
   soundEnabled: boolean;
+  hoveredThreatId: string | null;
+  hoveredBatchId: string | null;
   addThreat: (threat: ThreatEvent) => void;
   addThreats: (threats: ThreatEvent[]) => void;
   toggleSimulation: () => void;
@@ -64,6 +66,7 @@ interface ThreatStore {
   updateMapFeatures: () => void;
   toggleMapType: () => void;
   toggleSound: () => void;
+  setHoveredThreat: (id: string | null, batchId: string | null) => void;
 }
 let mapUpdateTimer: ReturnType<typeof setTimeout> | null = null;
 const MAP_UPDATE_DEBOUNCE_MS = 100;
@@ -82,13 +85,30 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   },
   addThreats: (threats: ThreatEvent[]) => {
     if (threats.length === 0) return;
+
     set((state) => {
       const newActiveThreats = [...threats, ...state.activeThreats].slice(
         0,
         MAX_ACTIVE_THREATS
       );
-      const newLogs = [...threats, ...state.logs].slice(0, MAX_LOGS);
+
+      const seenBatches = new Set<string>();
+
+      const uniqueLogsToAdd = threats.filter((t) => {
+        if (!t.metadata.isBotnet) return true;
+
+        const batchId = t.metadata.batchId;
+        if (batchId && !seenBatches.has(batchId)) {
+          seenBatches.add(batchId);
+          return true;
+        }
+        return false;
+      });
+
+      const newLogs = [...uniqueLogsToAdd, ...state.logs].slice(0, MAX_LOGS);
+
       const newStatsGlobal = computeThreatStats(newLogs);
+
       return {
         activeThreats: newActiveThreats,
         logs: newLogs,
@@ -174,6 +194,10 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
       soundEnabled: !state.soundEnabled,
     }));
   },
+  hoveredThreatId: null,
+  hoveredBatchId: null,
+  setHoveredThreat: (id, batchId) =>
+    set({ hoveredThreatId: id, hoveredBatchId: batchId }),
 }));
 
 let lastFilteredLogsFilters: FilterState | null = null;

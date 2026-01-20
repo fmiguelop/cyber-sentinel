@@ -379,7 +379,18 @@ export function MobileSimulationUI() {
             </div>
 
             <div className="flex-1 min-w-0 font-mono text-xs text-zinc-400 truncate line-clamp-1 text-ellipsis overflow-hidden">
-                {logs[0] ? <LogItem log={logs[0]} severityColor={severityToColorToken(logs[0]?.severity)} /> : "System initializing..."}
+              {logs[0] ? (
+                <LogItem
+                  log={logs[0]}
+                  severityColor={
+                    logs[0].type === "DDoS"
+                      ? "#d946ef"
+                      : severityToColorToken(logs[0]?.severity)
+                  }
+                />
+              ) : (
+                "System initializing..."
+              )}
             </div>
 
             <ChevronUp
@@ -429,7 +440,9 @@ export function MobileSimulationUI() {
               ) : (
                 <AnimatePresence mode="popLayout" initial={false}>
                   {logs.map((log) => {
-                    const severityColor = severityToColorToken(log.severity);
+                    const severityColor = log.metadata.isBotnet
+                      ? "#d946ef"
+                      : severityToColorToken(log.severity);
                     return (
                       <motion.div
                         key={log.id}
@@ -509,7 +522,8 @@ function LogItem({
       >
         [{log.severity.toUpperCase()}]
       </span>
-      <span>{log.type}</span>
+      <span>{log.metadata.isBotnet ? "DDoS Botnet Swarm" : log.type}</span>
+
       <span className="text-muted-foreground">from</span>
       <span>{log.source.name}</span>
       <span className="text-muted-foreground">to</span>

@@ -30,14 +30,14 @@ const ControlPanel = dynamic(
 function MobileHeader() {
   return (
     <header className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-2 py-1 backdrop-blur-sm bg-background/95 w-fit rounded-br-lg">
-        <Image
-          src="/assets/logo.svg"
-          alt="CyberSentinel"
-          width={32}
-          height={32}
-          className="h-8 w-auto"
-          priority
-        />
+      <Image
+        src="/assets/logo.svg"
+        alt="CyberSentinel"
+        width={32}
+        height={32}
+        className="h-8 w-auto"
+        priority
+      />
     </header>
   );
 }

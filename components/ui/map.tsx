@@ -17,6 +17,7 @@ import {
 import { createPortal } from "react-dom";
 import { X, Minus, Plus, Locate, Maximize, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useThreatStore } from "@/stores/useThreatStore";
 function getDocumentTheme(): Theme | null {
   if (typeof document === "undefined") return null;
   if (document.documentElement.classList.contains("dark")) return "dark";
@@ -1190,10 +1191,62 @@ function MapLineLayer({
   interactive = true,
 }: MapLineLayerProps) {
   const { map, isLoaded } = useMap();
+  const hoveredThreatId = useThreatStore((state) => state.hoveredThreatId);
+  const hoveredBatchId = useThreatStore((state) => state.hoveredBatchId);
   const autoId = useId();
   const id = propId ?? autoId;
   const sourceId = `line-source-${id}`;
   const layerId = `line-layer-${id}`;
+
+  useEffect(() => {
+    if (!isLoaded || !map || !map.getLayer(layerId)) return;
+
+    const isHovering = hoveredThreatId !== null || hoveredBatchId !== null;
+
+    const safeBatchId = hoveredBatchId || "";
+    const safeThreatId = hoveredThreatId || "";
+
+    const opacityExpression = isHovering
+      ? [
+          "case",
+          ...(hoveredBatchId 
+            ? [["==", ["get", "batchId"], safeBatchId], 1.0] 
+            : []),
+            
+          ...(hoveredThreatId 
+            ? [["==", ["get", "id"], safeThreatId], 1.0] 
+            : []), 0.5
+        ]
+      : [
+          "case",
+          ["==", ["get", "type"], "DDoS"], 0.5,
+          opacity
+        ];
+
+    const widthExpression = isHovering
+      ? [
+          "case",
+          ...(hoveredBatchId 
+            ? [["==", ["get", "batchId"], safeBatchId], 3] 
+            : []),
+
+          ...(hoveredThreatId 
+            ? [["==", ["get", "id"], safeThreatId], 4] 
+            : []),
+
+          1 
+        ]
+      : [
+          "case",
+          ["==", ["get", "type"], "DDoS"], 1,
+          width
+        ];
+
+    map.setPaintProperty(layerId, "line-opacity", opacityExpression);
+    map.setPaintProperty(layerId, "line-width", widthExpression);
+
+  }, [isLoaded, map, hoveredThreatId, hoveredBatchId, layerId, width, opacity]);
+
   useEffect(() => {
     if (!isLoaded || !map) return;
     map.addSource(sourceId, {
@@ -1211,21 +1264,22 @@ function MapLineLayer({
       paint: {
         "line-color": [
           "case",
+          ["==", ["get", "type"], "DDoS"],
+          "#d946ef",
           ["==", ["get", "severity"], "critical"],
           "#ef4444",
           ["==", ["get", "severity"], "medium"],
           "#eab308",
           "#22c55e",
         ],
-        "line-width": width,
-        "line-opacity": opacity,
+        "line-width": ["case", ["==", ["get", "type"], "DDoS"], 0.8, width],
+        "line-opacity": ["case", ["==", ["get", "type"], "DDoS"], 0.5, opacity],
+        "line-blur": 1,
       },
     });
     return () => {
-      try {
-        if (map.getLayer(layerId)) map.removeLayer(layerId);
-        if (map.getSource(sourceId)) map.removeSource(sourceId);
-      } catch {}
+      if (map.getLayer(layerId)) map.removeLayer(layerId);
+      if (map.getSource(sourceId)) map.removeSource(sourceId);
     };
   }, [isLoaded, map, sourceId, layerId, width, opacity]);
   useEffect(() => {
@@ -1237,8 +1291,18 @@ function MapLineLayer({
   }, [isLoaded, map, data, sourceId]);
   useEffect(() => {
     if (!isLoaded || !map || !map.getLayer(layerId)) return;
-    map.setPaintProperty(layerId, "line-width", width);
-    map.setPaintProperty(layerId, "line-opacity", opacity);
+    map.setPaintProperty(layerId, "line-width", [
+      "case",
+      ["==", ["get", "type"], "DDoS"],
+      0.8,
+      width,
+    ]);
+    map.setPaintProperty(layerId, "line-opacity", [
+      "case",
+      ["==", ["get", "type"], "DDoS"],
+      0.5,
+      opacity,
+    ]);
   }, [isLoaded, map, layerId, width, opacity]);
   useEffect(() => {
     if (!isLoaded || !map || !interactive) return;

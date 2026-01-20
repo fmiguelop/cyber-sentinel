@@ -7,7 +7,7 @@ export function getRandomSeverity(): Severity {
   return "critical";
 }
 export function getRandomAttackType(): AttackType {
-  const types: AttackType[] = ["DDoS", "Phishing", "Malware", "BruteForce"];
+  const types: AttackType[] = ["Phishing", "Malware", "BruteForce"];
   return types[Math.floor(Math.random() * types.length)];
 }
 export function getRandomDurationMs(): number {

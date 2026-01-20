@@ -38,6 +38,8 @@ export function threatsToLineFeatureCollection(
       severity: threat.severity,
       type: threat.type,
       timestamp: threat.timestamp,
+      isBotnet: threat.metadata.isBotnet,
+      batchId: threat.metadata.batchId,
     },
   }));
   return {

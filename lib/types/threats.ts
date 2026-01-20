@@ -14,6 +14,9 @@ export interface ThreatEvent {
     ipAddress: string;
     payloadSize?: number;
     packetCount?: number;
+    isBotnet?: boolean;
+    batchId?: string;
+    swarmSize?: number;
   };
 }
 export interface FilterState {

@@ -17,36 +17,63 @@ const BATCH_FLUSH_INTERVAL_MS = 75;
 
 const SIM_SPEED_MULTIPLIER = 1;
 
+const generateId = () => {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
+  return faker.string.uuid();
+};
+
 function getRandomDelay(speed: number): number {
   const baseDelay =
     Math.random() * (GENERATION_DELAY_MAX_MS - GENERATION_DELAY_MIN_MS) +
     GENERATION_DELAY_MIN_MS;
   return (baseDelay * SIM_SPEED_MULTIPLIER) / speed;
 }
-function generateThreatEvent(): ThreatEvent {
+
+function generateThreatBatch(): ThreatEvent[] {
   const source = getRandomCity();
   const target = getRandomTarget(source);
   const severity = getRandomSeverity();
   const type = getRandomAttackType();
   const duration = getRandomDurationMs();
+  const isSwarm = Math.random() < 0.2;
 
-  // Try crypto.randomUUID first, fallback to faker for compatibility
-  let generatedId: string;
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    try {
-      generatedId = crypto.randomUUID();
-    } catch (error) {
-      generatedId = faker.string.uuid();
+  if (isSwarm) {
+    const swarmSize = Math.floor(Math.random() * 12) + 8;
+    const batchId = generateId();
+    const swarm: ThreatEvent[] = [];
+
+    for (let i = 0; i < swarmSize; i++) {
+      const swarmSource = getRandomCity();
+      const timestamp = Date.now();
+      swarm.push({
+        id: generateId(),
+        timestamp: timestamp,
+        source: swarmSource,
+        target: target,
+        type: "DDoS",
+        severity: "critical",
+        duration: duration,
+        metadata: {
+          ipAddress: faker.internet.ipv4(),
+          payloadSize: Math.floor(Math.random() * 5000),
+          packetCount: Math.floor(Math.random() * 50000),
+          isBotnet: true,
+          batchId: batchId,
+          swarmSize: swarmSize,
+        },
+      });
     }
-  } else {
-    generatedId = faker.string.uuid();
+
+    return swarm;
   }
 
   const threat: ThreatEvent = {
-    id: generatedId,
+    id: generateId(),
     timestamp: Date.now(),
     source,
     target,
@@ -61,8 +88,9 @@ function generateThreatEvent(): ThreatEvent {
       }),
     },
   };
-  return threat;
+  return [threat];
 }
+
 export function useThreatSimulation() {
   const isLive = useThreatStore((state) => state.isLive);
   const speed = useThreatStore((state) => state.speed);
@@ -115,8 +143,8 @@ export function useThreatSimulation() {
     const scheduleNext = () => {
       const delay = getRandomDelay(speed);
       generationTimeoutRef.current = setTimeout(() => {
-        const threat = generateThreatEvent();
-        threatBufferRef.current.push(threat);
+        const newThreats = generateThreatBatch();
+        threatBufferRef.current.push(...newThreats);
         scheduleNext();
       }, delay);
     };

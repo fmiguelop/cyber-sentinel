@@ -25,7 +25,7 @@ import {
 import { logsToJson, logsToCsv, downloadTextFile } from "@/lib/threats/export";
 import { cn } from "@/lib/utils";
 
-type LogPanelSize = "min"| "max";
+type LogPanelSize = "min" | "max";
 
 const DESKTOP_HEIGHT = "calc((100vh - 13rem) / 6)";
 
@@ -69,7 +69,7 @@ export function ResponsiveLog() {
     downloadTextFile(`threats-full-${timestamp}.csv`, "text/csv", content);
   };
 
-  const [panelSize, setPanelSize] = useState<LogPanelSize>('min');
+  const [panelSize, setPanelSize] = useState<LogPanelSize>("min");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -84,7 +84,7 @@ export function ResponsiveLog() {
   const [criticalAnnouncements, setCriticalAnnouncements] = useState<string[]>(
     []
   );
-  
+
   useEffect(() => {
     const newCriticalThreats = filteredLogs
       .filter(
@@ -120,9 +120,7 @@ export function ResponsiveLog() {
     panelSize === "max"
       ? filteredLogs
       : filteredLogs.slice(0, SIZE_ENTRY_LIMITS[panelSize]);
-  const heightValue =  panelSize === "min"
-      ? DESKTOP_HEIGHT
-      : "60vh";
+  const heightValue = panelSize === "min" ? DESKTOP_HEIGHT : "60vh";
   return (
     <motion.div
       id="event-log"
@@ -134,7 +132,7 @@ export function ResponsiveLog() {
         damping: 20,
         stiffness: 300,
       }}
-        className={`overflow-hidden w-full self-end`}
+      className={`overflow-hidden w-full self-end`}
     >
       <Card
         className="h-full border-border bg-card shadow-lg flex flex-col"
@@ -222,23 +220,28 @@ export function ResponsiveLog() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLogToggle();
-                  }}
-                  aria-label={
-                    panelSize === "min"
-                      ? "Expand log panel"
-                      : "Collapse log panel"
-                  }
-                  title={panelSize === "min" ? "Expand" : "Collapse"}
-                >
-                  <ChevronDown className={cn("h-4 w-4 transition-all duration-300", panelSize === "min" ? "rotate-180" : "")} />
-                </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-xs hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLogToggle();
+                }}
+                aria-label={
+                  panelSize === "min"
+                    ? "Expand log panel"
+                    : "Collapse log panel"
+                }
+                title={panelSize === "min" ? "Expand" : "Collapse"}
+              >
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-all duration-300",
+                    panelSize === "min" ? "rotate-180" : ""
+                  )}
+                />
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -258,7 +261,10 @@ export function ResponsiveLog() {
               ) : (
                 <AnimatePresence mode="popLayout" initial={false}>
                   {displayedLogs.map((log) => {
-                    const severityColor = severityToColorToken(log.severity);
+                    const severityColor = log.metadata.isBotnet
+                      ? "#d946ef"
+                      : severityToColorToken(log.severity);
+
                     return (
                       <motion.div
                         key={log.id}
@@ -300,9 +306,17 @@ export function ResponsiveLog() {
                           >
                             [{log.severity.toUpperCase()}]
                           </span>
-                          <span>{log.type}</span>
+                          <span>
+                            {log.metadata.isBotnet
+                              ? "DDoS Botnet Swarm"
+                              : log.type}
+                          </span>
                           <span className="text-muted-foreground">from</span>
-                          <span>{log.source.name}</span>
+                          <span>
+                            {log.source.name}{" "}
+                            {log.metadata.swarmSize &&
+                              `(+${log.metadata.swarmSize})`}
+                          </span>
                           <span className="text-muted-foreground">to</span>
                           <span>{log.target.name}</span>
                           <span className="text-muted-foreground font-mono text-[10px]">
