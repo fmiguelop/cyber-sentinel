@@ -8,7 +8,7 @@ export function HelpPanel() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="absolute bottom-42 right-7 z-50 flex-col items-end gap-2 hidden lg:flex">
+    <div className="absolute bottom-48 right-7 z-50 flex-col items-end gap-2 hidden lg:flex">
       <div
         className={cn(
           "w-80 bg-black/80 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl overflow-hidden transition-all duration-300 origin-bottom-right",

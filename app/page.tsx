@@ -10,6 +10,7 @@ import { WelcomeModal } from "@/components/onboarding/WelcomeModal";
 import { Logo } from "@/components/branding/logo";
 import dynamic from "next/dynamic";
 import { MobileSimulationUI } from "@/components/mobile-drawer";
+import { HelpPanel } from "@/components/ui/help-panel";
 
 const DefconSection = dynamic(
   () => import("../components/dashboard/DefconSection"),
@@ -76,6 +77,8 @@ export default function Home() {
       <div className="hidden lg:block absolute left-6 right-6 bottom-6 z-10">
         <ResponsiveLog />
       </div>
+
+      <HelpPanel />
 
       <MobileSimulationUI />
     </div>
