@@ -8,7 +8,7 @@ import { useThreatStore } from "@/stores/useThreatStore";
 export function ShockwaveLayer() {
   const { map, isLoaded } = useMap();
   const shockwaves = useThreatStore((state) => state.shockwaves);
-  
+
   const sourceId = "shockwaves-source";
   const layerId = "shockwaves-layer";
   const animationRef = useRef<number>(null);
@@ -48,7 +48,7 @@ export function ShockwaveLayer() {
         const elapsed = now - s.startTime;
         const duration = 2000;
         const progress = Math.min(elapsed / duration, 1);
-        
+
         const easeOut = 1 - Math.pow(1 - progress, 3);
 
         return {

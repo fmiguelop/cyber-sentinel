@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { HudSectionTitle } from "@/components/dashboard/hud";
 import {
   Activity,
+  ChevronsLeft,
   ChevronRight,
   ChevronsRight,
   Filter,
@@ -11,9 +12,9 @@ import {
   MapIcon,
   Pause,
   Play,
-  RotateCcw,
   Square,
-  StopCircle,
+  Video,
+  VideoOff,
   Volume2,
   VolumeX,
   Zap,
@@ -68,7 +69,8 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
   const soundEnabled = useThreatStore((state) => state.soundEnabled);
   const toggleSound = useThreatStore((state) => state.toggleSound);
   const logs = useThreatStore((state) => state.logs);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const autoTrackEnabled = useThreatStore((state) => state.autoTrackEnabled);
+  const toggleAutoTrack = useThreatStore((state) => state.toggleAutoTrack);
   const totalEvents = logs.length;
 
   const toggleSeverity = (severity: Severity) => {
@@ -103,12 +105,6 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
       toggleSimulation();
     }
   };
-
-  useEffect(() => {
-    if (isMobile) {
-      toggleMapType();
-    }
-  }, [isMobile]);
 
   return (
     <div role="region" aria-label="Control Panel" className="lg:px-6 lg:py-4">
@@ -420,6 +416,34 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
                 <p>Toggle Audio Effects</p>
               </TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  id="auto-track-button"
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    "h-8 w-8 rounded-none focus-visible:ring-2 focus-visible:ring-ring",
+                    autoTrackEnabled ? "text-emerald-500" : ""
+                  )}
+                  onClick={toggleAutoTrack}
+                  aria-label={
+                    autoTrackEnabled
+                      ? "Disable auto tracking"
+                      : "Enable auto tracking"
+                  }
+                >
+                  {autoTrackEnabled ? (
+                    <Video className="h-4 w-4" />
+                  ) : (
+                    <VideoOff className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle Auto Tracking</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </TooltipProvider>
       </section>
@@ -427,7 +451,7 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Reset Simulation?</AlertDialogTitle>
+            <AlertDialogTitle>Stop Simulation?</AlertDialogTitle>
             <AlertDialogDescription>
               This will stop the simulation and clear all {totalEvents} threat
               events. This action cannot be undone.
@@ -439,7 +463,7 @@ export default function ControlPanel({ origin = "sidebar" }: Props) {
               onClick={handleResetConfirm}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              Reset All
+              Stop
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

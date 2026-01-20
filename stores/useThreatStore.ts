@@ -58,6 +58,8 @@ interface ThreatStore {
   hoveredThreatId: string | null;
   hoveredBatchId: string | null;
   shockwaves: Shockwave[];
+  autoTrackEnabled: boolean;
+  selectedCountry: string | null;
   addThreat: (threat: ThreatEvent) => void;
   addThreats: (threats: ThreatEvent[]) => void;
   toggleSimulation: () => void;
@@ -70,6 +72,8 @@ interface ThreatStore {
   toggleMapType: () => void;
   toggleSound: () => void;
   setHoveredThreat: (id: string | null, batchId: string | null) => void;
+  toggleAutoTrack: () => void;
+  setSelectedCountry: (country: string | null) => void;
 }
 let mapUpdateTimer: ReturnType<typeof setTimeout> | null = null;
 const MAP_UPDATE_DEBOUNCE_MS = 100;
@@ -84,6 +88,8 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   mapType: "globe",
   soundEnabled: true,
   shockwaves: [],
+  autoTrackEnabled: false,
+  selectedCountry: null,
   addThreat: (threat: ThreatEvent) => {
     get().addThreats([threat]);
   },
@@ -183,7 +189,7 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
 
       expired.forEach((t) => {
         const key = `${t.target.lat},${t.target.lng}`;
-        if (processedTargets.has(key)) return; // Deduplicate swarms
+        if (processedTargets.has(key)) return;
         processedTargets.add(key);
 
         const isSwarm = t.metadata?.isBotnet;
@@ -191,10 +197,10 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
           isSwarm || t.type === "DDoS"
             ? "#d946ef"
             : t.severity === "critical"
-            ? "#ef4444"
-            : t.severity === "medium"
-            ? "#eab308"
-            : "#22c55e";
+              ? "#ef4444"
+              : t.severity === "medium"
+                ? "#eab308"
+                : "#22c55e";
 
         const maxRadius = isSwarm ? 50 : 20;
 
@@ -208,12 +214,11 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
         });
       });
 
-      // 3. Cleanup OLD Shockwaves (older than 2s)
-      const existingShockwaves = state.shockwaves || []; // Safety fallback
+      const existingShockwaves = state.shockwaves || [];
       const survivingShockwaves = existingShockwaves.filter(
         (s) => now - s.startTime < 2000
       );
-      
+
       if (
         kept.length === active.length &&
         survivingShockwaves.length === existingShockwaves.length &&
@@ -257,6 +262,19 @@ export const useThreatStore = create<ThreatStore>((set, get) => ({
   hoveredBatchId: null,
   setHoveredThreat: (id, batchId) =>
     set({ hoveredThreatId: id, hoveredBatchId: batchId }),
+  toggleAutoTrack: () => {
+    set((state) => ({
+      autoTrackEnabled: !state.autoTrackEnabled,
+      selectedCountry: null,
+    }));
+  },
+  setSelectedCountry: (country: string | null) => {
+    set({ selectedCountry: country });
+
+    if (country) {
+      set({ autoTrackEnabled: false });
+    }
+  },
 }));
 
 let lastFilteredLogsFilters: FilterState | null = null;

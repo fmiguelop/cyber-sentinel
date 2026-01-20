@@ -69,6 +69,16 @@ export function useTour() {
         },
       },
       {
+        element: "#auto-track-button",
+        popover: {
+          title: "Auto Tracking",
+          description:
+            "Toggle auto tracking of critical threats. Keep enabled to stay alert.",
+          side: "left" as const,
+          align: "start" as const,
+        },
+      },
+      {
         element: "#event-log",
         popover: {
           title: "Event Log",

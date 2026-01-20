@@ -40,6 +40,8 @@ export function threatsToLineFeatureCollection(
       timestamp: threat.timestamp,
       isBotnet: threat.metadata.isBotnet,
       batchId: threat.metadata.batchId,
+      sourceCountry: threat.source.country,
+      targetCountry: threat.target.country,
     },
   }));
   return {

@@ -9,6 +9,8 @@ import type { ThreatEvent } from "@/lib/types/threats";
 import type { ThreatPointFeatureProperties } from "@/lib/threats/geojson";
 import { WorldBordersLayer } from "./WorldBorderLayer";
 import { ShockwaveLayer } from "./ShockwaveLayer";
+import { AutoTracker } from "./AutoTracker";
+import { KeyboardListener } from "./KeyboardListener";
 
 const loadMapIcons = (map: MapLibreGL.Map) => {
   const icons = [
@@ -351,8 +353,10 @@ export function CyberMap() {
         center={[0, 20]}
         zoom={1.5}
       >
+        <KeyboardListener />
         <WorldBordersLayer />
         <ShockwaveLayer />
+        <AutoTracker />
         {mapFeatures && mapFeatures.features.length > 0 && (
           <MapLineLayer data={mapFeatures} width={2} opacity={0.7} />
         )}

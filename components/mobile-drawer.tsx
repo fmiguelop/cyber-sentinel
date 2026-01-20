@@ -26,6 +26,8 @@ import {
   Square,
   Volume2,
   VolumeX,
+  VideoOff,
+  Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils"; // Assumes you have a standard shadcn/tailwind utils
 import { Button } from "@/components/ui/button";
@@ -66,6 +68,8 @@ export function MobileSimulationUI() {
   const totalEvents = logs.length;
   const defconLevel = getDefconLevel(statsGlobal.activeCritical);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const autoTrackEnabled = useThreatStore((state) => state.autoTrackEnabled);
+  const toggleAutoTrack = useThreatStore((state) => state.toggleAutoTrack);
 
   const toggleSeverity = (severity: Severity) => {
     setFilters({
@@ -335,6 +339,23 @@ export function MobileSimulationUI() {
             <Volume2 className="h-4 w-4" />
           ) : (
             <VolumeX className="h-4 w-4" />
+          )}
+        </Button>
+        <Button
+          id="auto-track-button"
+          variant="ghost"
+          className={`h-10 w-10 rounded-full hover:bg-white/10 text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring ${
+            autoTrackEnabled ? "text-emerald-500" : ""
+          }`}
+          onClick={toggleAutoTrack}
+          aria-label={
+            autoTrackEnabled ? "Disable auto tracking" : "Enable auto tracking"
+          }
+        >
+          {autoTrackEnabled ? (
+            <Video className="h-4 w-4" />
+          ) : (
+            <VideoOff className="h-4 w-4" />
           )}
         </Button>
       </motion.div>

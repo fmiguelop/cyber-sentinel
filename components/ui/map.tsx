@@ -1180,6 +1180,7 @@ type MapLineLayerProps = {
   onMouseLeave?: () => void;
   interactive?: boolean;
 };
+
 function MapLineLayer({
   id: propId,
   data,
@@ -1193,6 +1194,7 @@ function MapLineLayer({
   const { map, isLoaded } = useMap();
   const hoveredThreatId = useThreatStore((state) => state.hoveredThreatId);
   const hoveredBatchId = useThreatStore((state) => state.hoveredBatchId);
+  const selectedCountry = useThreatStore((state) => state.selectedCountry);
   const autoId = useId();
   const id = propId ?? autoId;
   const sourceId = `line-source-${id}`;
@@ -1202,7 +1204,8 @@ function MapLineLayer({
     if (!isLoaded || !map || !map.getLayer(layerId)) return;
 
     const isHovering = hoveredThreatId !== null || hoveredBatchId !== null;
-
+    const isCountryActive = selectedCountry !== null;
+    const safeCountry = selectedCountry || "";
     const safeBatchId = hoveredBatchId || "";
     const safeThreatId = hoveredThreatId || "";
 
@@ -1212,13 +1215,24 @@ function MapLineLayer({
           ...(hoveredBatchId
             ? [["==", ["get", "batchId"], safeBatchId], 1.0]
             : []),
-
           ...(hoveredThreatId
             ? [["==", ["get", "id"], safeThreatId], 1.0]
             : []),
-          0.5,
+          0.1,
         ]
-      : ["case", ["==", ["get", "type"], "DDoS"], 0.5, opacity];
+      : isCountryActive
+        ? [
+            "case",
+            [
+              "any",
+              ["==", ["get", "sourceCountry"], safeCountry],
+              ["==", ["get", "targetCountry"], safeCountry],
+            ],
+            ["case", ["==", ["get", "type"], "DDoS"], 0.8, opacity],
+
+            0.05,
+          ]
+        : ["case", ["==", ["get", "type"], "DDoS"], 0.5, opacity];
 
     const widthExpression = isHovering
       ? [
@@ -1226,17 +1240,23 @@ function MapLineLayer({
           ...(hoveredBatchId
             ? [["==", ["get", "batchId"], safeBatchId], 3]
             : []),
-
           ...(hoveredThreatId ? [["==", ["get", "id"], safeThreatId], 4] : []),
-
           1,
         ]
-      : ["case", ["==", ["get", "type"], "DDoS"], 1, width];
+      : ["case", ["==", ["get", "type"], "DDoS"], 0.8, width];
 
     map.setPaintProperty(layerId, "line-opacity", opacityExpression);
     map.setPaintProperty(layerId, "line-width", widthExpression);
-  }, [isLoaded, map, hoveredThreatId, hoveredBatchId, layerId, width, opacity]);
-
+  }, [
+    isLoaded,
+    map,
+    hoveredThreatId,
+    hoveredBatchId,
+    selectedCountry,
+    layerId,
+    width,
+    opacity,
+  ]);
   useEffect(() => {
     if (!isLoaded || !map) return;
     map.addSource(sourceId, {

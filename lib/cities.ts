@@ -2661,3 +2661,183 @@ export const getRandomTarget = (sourceCity: City): City => {
   }
   return target;
 };
+
+export function toCountryCode(country: string | null): string {
+  if (!country) return "--";
+  if (/^[A-Z]{2,3}$/.test(country)) return country;
+  const map: Record<string, string> = {
+    // --- North America & Caribbean ---
+    USA: "USA",
+    Canada: "CAN",
+    Mexico: "MEX",
+    Cuba: "CUB",
+    "Dominican Republic": "DOM",
+    "Puerto Rico": "PRI",
+    Jamaica: "JAM",
+    Haiti: "HTI",
+
+    // --- South & Central America ---
+    Brazil: "BRA",
+    Argentina: "ARG",
+    Chile: "CHL",
+    Colombia: "COL",
+    Peru: "PER",
+    Venezuela: "VEN",
+    Ecuador: "ECU",
+    Bolivia: "BOL",
+    Paraguay: "PRY",
+    Uruguay: "URY",
+    "El Salvador": "SLV",
+    Panama: "PAN",
+    "Costa Rica": "CRI",
+    Guatemala: "GTM",
+    Honduras: "HND",
+    Nicaragua: "NIC",
+    Belize: "BLZ",
+
+    // --- Europe ---
+    UK: "GBR",
+    France: "FRA",
+    Germany: "DEU",
+    Netherlands: "NLD",
+    Belgium: "BEL",
+    Switzerland: "CHE",
+    Austria: "AUT",
+    Ireland: "IRL",
+    Spain: "ESP",
+    Italy: "ITA",
+    Portugal: "PRT",
+    Greece: "GRC",
+    Turkey: "TUR",
+    Sweden: "SWE",
+    Denmark: "DNK",
+    Norway: "NOR",
+    Finland: "FIN",
+    Iceland: "ISL",
+    Poland: "POL",
+    "Czech Republic": "CZE",
+    Hungary: "HUN",
+    Romania: "ROU",
+    Bulgaria: "BGR",
+    Serbia: "SRB",
+    Croatia: "HRV",
+    Slovakia: "SVK",
+    Slovenia: "SVN",
+    Lithuania: "LTU",
+    Latvia: "LVA",
+    Estonia: "EST",
+    Russia: "RUS",
+    Ukraine: "UKR",
+
+    // --- Asia ---
+    China: "CHN",
+    Japan: "JPN",
+    "South Korea": "KOR",
+    Taiwan: "TWN",
+    India: "IND",
+    Pakistan: "PAK",
+    Bangladesh: "BGD",
+    Singapore: "SGP",
+    Thailand: "THA",
+    Indonesia: "IDN",
+    Vietnam: "VNM",
+    Malaysia: "MYS",
+    Philippines: "PHL",
+    Myanmar: "MMR",
+    Cambodia: "KHM",
+    Laos: "LAO",
+    Brunei: "BRN",
+    UAE: "ARE",
+    "Saudi Arabia": "SAU",
+    Israel: "ISR",
+    Qatar: "QAT",
+    Kuwait: "KWT",
+    Bahrain: "BHR",
+    Oman: "OMN",
+    Iran: "IRN",
+    Iraq: "IRQ",
+    Lebanon: "LBN",
+    Syria: "SYR",
+    Jordan: "JOR",
+    Kazakhstan: "KAZ",
+    Uzbekistan: "UZB",
+    Kyrgyzstan: "KGZ",
+    Tajikistan: "TJK",
+    Turkmenistan: "TKM",
+    Nepal: "NPL",
+    "Sri Lanka": "LKA",
+    Afghanistan: "AFG",
+    Mongolia: "MNG",
+
+    // --- Africa ---
+    Egypt: "EGY",
+    Morocco: "MAR",
+    Algeria: "DZA",
+    Tunisia: "TUN",
+    Libya: "LBY",
+    Nigeria: "NGA",
+    Ghana: "GHA",
+    Senegal: "SEN",
+    "Ivory Coast": "CIV",
+    Guinea: "GIN",
+    Mali: "MLI",
+    "Burkina Faso": "BFA",
+    "Sierra Leone": "SLE",
+    Liberia: "LBR",
+    Kenya: "KEN",
+    Ethiopia: "ETH",
+    Tanzania: "TZA",
+    Uganda: "UGA",
+    Rwanda: "RWA",
+    Somalia: "SOM",
+    Djibouti: "DJI",
+    "DR Congo": "COD",
+    Congo: "COG",
+    Cameroon: "CMR",
+    Angola: "AGO",
+    Chad: "TCD",
+    Gabon: "GAB",
+    "South Africa": "ZAF",
+    Zimbabwe: "ZWE",
+    Zambia: "ZMB",
+    Mozambique: "MOZ",
+    Botswana: "BWA",
+    Namibia: "NAM",
+    Madagascar: "MDG",
+    Mauritius: "MUS",
+    Sudan: "SDN",
+    Eritrea: "ERI",
+
+    // --- Oceania ---
+    Australia: "AUS",
+    "New Zealand": "NZL",
+    Fiji: "FJI",
+    "Papua New Guinea": "PNG",
+    "New Caledonia": "NCL",
+    "French Polynesia": "PYF",
+    Samoa: "WSM",
+    Tonga: "TON",
+    "Solomon Islands": "SLB",
+    Vanuatu: "VUT",
+  };
+  return map[country] ?? country;
+}
+
+export const ACTIVE_COUNTRIES = new Set(
+  CITIES.map((c) => c.country.toLowerCase())
+);
+
+export function isValidSimulationCountry(mapCountryName: string): boolean {
+  if (!mapCountryName) return false;
+
+  const normalized = mapCountryName.toLowerCase();
+
+  if (ACTIVE_COUNTRIES.has(normalized)) return true;
+
+  if (normalized === "united states" && ACTIVE_COUNTRIES.has("usa"))
+    return true;
+  if (normalized === "south korea" && ACTIVE_COUNTRIES.has("south korea"))
+    return true;
+
+  return false;
+}

@@ -10,8 +10,8 @@ import type { ThreatEvent } from "@/lib/types/threats";
 let audioContext: AudioContext | null = null;
 
 function getAudioContext(): AudioContext | null {
-  if (audioContext && audioContext.state !== 'closed') {
-    if (audioContext.state === 'suspended') {
+  if (audioContext && audioContext.state !== "closed") {
+    if (audioContext.state === "suspended") {
       audioContext.resume().catch(console.error);
     }
     return audioContext;
@@ -26,7 +26,6 @@ function getAudioContext(): AudioContext | null {
     return null;
   }
 }
-
 
 function playAlertBeep(ctx: AudioContext) {
   try {
@@ -49,15 +48,15 @@ function playAlertBeep(ctx: AudioContext) {
 }
 
 function playSwarmSound(ctx: AudioContext) {
-  const osc = ctx.createOscillator()
-  const gain = ctx.createGain()
-  const filter = ctx.createBiquadFilter()
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
 
-  osc.connect(filter)
-  filter.connect(gain)
-  gain.connect(ctx.destination)
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
 
-  osc.type = "sawtooth"
+  osc.type = "sawtooth";
 
   osc.frequency.setValueAtTime(150, ctx.currentTime);
   osc.frequency.linearRampToValueAtTime(100, ctx.currentTime + 0.4);
@@ -66,19 +65,17 @@ function playSwarmSound(ctx: AudioContext) {
   filter.frequency.setValueAtTime(400, ctx.currentTime);
 
   gain.gain.setValueAtTime(0, ctx.currentTime);
-  gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.05); 
+  gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.05);
   gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
 
   osc.start(ctx.currentTime);
   osc.stop(ctx.currentTime + 0.5);
 }
 
-
 const RATE_LIMIT_MS = 300;
 let lastBeepTime = 0;
 let lastSoundTime = 0;
 let pendingThreats = 0;
-
 
 export function useCriticalAlertSound() {
   const logs = useThreatStore((state) => state.logs);
@@ -116,8 +113,11 @@ export function useCriticalAlertSound() {
     }
 
     if (logs.length > previousLogsLengthRef.current) {
-      const newLogs = logs.slice(0, logs.length - previousLogsLengthRef.current);
-      
+      const newLogs = logs.slice(
+        0,
+        logs.length - previousLogsLengthRef.current
+      );
+
       let foundCritical = false;
       let foundSwarm = false;
 
@@ -126,21 +126,24 @@ export function useCriticalAlertSound() {
         previousThreatIdsRef.current.add(log.id);
 
         if (log.metadata?.isBotnet) {
-            foundSwarm = true;
+          foundSwarm = true;
         } else if (log.severity === "critical") {
-            foundCritical = true;
+          foundCritical = true;
         }
       });
 
       if (foundSwarm || foundCritical) {
-        pendingAudioRef.current.hasSwarm = pendingAudioRef.current.hasSwarm || foundSwarm;
-        pendingAudioRef.current.hasCritical = pendingAudioRef.current.hasCritical || foundCritical;
+        pendingAudioRef.current.hasSwarm =
+          pendingAudioRef.current.hasSwarm || foundSwarm;
+        pendingAudioRef.current.hasCritical =
+          pendingAudioRef.current.hasCritical || foundCritical;
 
         const now = Date.now();
         const timeSinceLast = now - lastSoundTime;
 
         if (timeSinceLast >= RATE_LIMIT_MS) {
-          if (rateLimitTimeoutRef.current) clearTimeout(rateLimitTimeoutRef.current);
+          if (rateLimitTimeoutRef.current)
+            clearTimeout(rateLimitTimeoutRef.current);
           executeSound();
         } else {
           if (!rateLimitTimeoutRef.current) {
